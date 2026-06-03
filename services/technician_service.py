@@ -67,18 +67,18 @@ class TechnicianService:
         ]
 
     def initialize_default_technicians(self) -> bool:
-        """初始化默认技师数据"""
+        """初始化默认老师数据"""
         try:
-            # 检查是否已有技师数据
+            # 检查是否已有老师数据
             existing_technicians = self.db.technicians.get_all_technicians()
             
             if existing_technicians:
-                logger.info(f"数据库中已有 {len(existing_technicians)} 位技师，跳过初始化")
+                logger.info(f"数据库中已有 {len(existing_technicians)} 位老师，跳过初始化")
                 return True
             
             logger.info("数据库中无老师数据，开始初始化默认老师")
             
-            # 添加默认技师
+            # 添加默认老师
             for tech_data in self.default_technicians:
                 try:
                     tech_id = self.db.technicians.add_technician(
@@ -98,46 +98,46 @@ class TechnicianService:
             return True
             
         except Exception as e:
-            logger.error(f"技师初始化失败: {e}")
+            logger.error(f"老师初始化失败: {e}")
             return False
 
     def get_all_technicians(self) -> List[Dict[str, Any]]:
-        """获取所有技师信息"""
+        """获取所有老师信息"""
         return self.db.technicians.get_all_technicians()
 
     def get_technician_by_name(self, name: str) -> Dict[str, Any]:
-        """根据姓名获取技师信息"""
+        """根据姓名获取老师信息"""
         return self.db.technicians.get_technician_by_name(name)
 
     def get_technician_by_id(self, technician_id: int) -> Dict[str, Any]:
-        """根据ID获取技师信息"""
+        """根据ID获取老师信息"""
         return self.db.technicians.get_technician_by_id(technician_id)
 
     def get_technician_schedules(self, technician_id: int, date) -> List[Dict[str, Any]]:
-        """获取技师指定日期的排班信息"""
+        """获取老师指定日期的排课信息"""
         return self.db.technicians.get_technician_schedules(technician_id, date)
 
     def is_technician_available(self, technician_id: int, start_time, end_time) -> bool:
-        """检查技师在指定时间段是否可用"""
+        """检查老师在指定时间段是否可授课"""
         return self.db.technicians.is_technician_available(technician_id, start_time, end_time)
 
     def add_technician(self, name: str, gender: str = None, strength: str = None) -> int:
-        """添加新技师"""
+        """添加新老师"""
         return self.db.technicians.add_technician(name, gender, strength)
 
     def get_technicians_count(self) -> int:
-        """获取技师总数"""
+        """获取老师总数"""
         technicians = self.db.technicians.get_all_technicians()
         return len(technicians)
 
     def get_technician_by_id(self, technician_id: int) -> Dict[str, Any]:
-        """根据ID获取技师信息"""
+        """根据ID获取老师信息"""
         return self.db.technicians.get_technician_by_id(technician_id)
 
     def get_technician_schedules(self, technician_id: int, date) -> List[Dict[str, Any]]:
-        """获取技师指定日期的排班信息"""
+        """获取老师指定日期的排课信息"""
         return self.db.technicians.get_technician_schedules(technician_id, date)
 
     def is_technician_available(self, technician_id: int, start_time, end_time) -> bool:
-        """检查技师在指定时间段是否可用"""
+        """检查老师在指定时间段是否可授课"""
         return self.db.technicians.is_technician_available(technician_id, start_time, end_time)
