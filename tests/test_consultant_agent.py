@@ -16,25 +16,25 @@ class TestConsultantAgentCoreFeatures:
     """测试咨询代理核心功能"""
     
     @pytest.mark.asyncio
-    async def test_should_answer_massage_related_questions(self):
-        """测试：应该能回答按摩相关问题"""
+    async def test_should_answer_tutoring_related_questions(self):
+        """测试：应该能回答家教课程相关问题"""
         agent = ConsultantAgent()
         await agent.knowledge_retriever.initialize()
         
-        massage_questions = [
-            "按摩有什么好处？",
-            "深层按摩是什么？", 
-            "按摩可以缓解疲劳吗？"
+        tutoring_questions = [
+            "初中数学一对一怎么安排？",
+            "高中物理课程怎么收费？", 
+            "英语听说困难适合什么课程？"
         ]
         
-        for question in massage_questions:
+        for question in tutoring_questions:
             response = await agent.consult(question)
             assert isinstance(response, str), f"应该返回字符串回答，但得到：{type(response)}"
             assert len(response.strip()) > 0, f"回答不应该为空，问题：{question}"
             
-            massage_keywords = ["按摩", "massage", "效果", "好处", "肌肉", "血液", "放松"]
-            has_relevant_content = any(keyword in response for keyword in massage_keywords)
-            assert has_relevant_content, f"回答应该与按摩相关，问题：{question}，回答：{response[:200]}..."
+            tutoring_keywords = ["课程", "辅导", "老师", "试听", "数学", "物理", "英语", "学习"]
+            has_relevant_content = any(keyword in response for keyword in tutoring_keywords)
+            assert has_relevant_content, f"回答应该与家教课程相关，问题：{question}，回答：{response[:200]}..."
     
     @pytest.mark.asyncio
     async def test_should_search_knowledge_from_database(self):
@@ -42,7 +42,7 @@ class TestConsultantAgentCoreFeatures:
         agent = ConsultantAgent()
         await agent.knowledge_retriever.initialize()
         
-        question = "按摩有什么好处？"
+        question = "初中数学一对一怎么安排？"
         knowledge_results = await agent.knowledge_retriever.search_knowledge(question, top_k=3)
         
         assert isinstance(knowledge_results, list), f"应该返回列表，但得到：{type(knowledge_results)}"
@@ -53,9 +53,9 @@ class TestConsultantAgentCoreFeatures:
                 assert 'content' in doc, f"知识条目应该有content字段，但得到：{doc.keys()}"
                 
             all_content = " ".join(doc.get('content', '') for doc in knowledge_results)
-            massage_keywords = ["按摩", "massage", "效果", "好处", "肌肉"]
-            has_relevant = any(keyword in all_content for keyword in massage_keywords)
-            assert has_relevant, f"检索的知识应该与按摩相关，但得到：{all_content[:300]}..."
+            tutoring_keywords = ["课程", "辅导", "老师", "试听", "数学", "年级", "学习"]
+            has_relevant = any(keyword in all_content for keyword in tutoring_keywords)
+            assert has_relevant, f"检索的知识应该与家教课程相关，但得到：{all_content[:300]}..."
     
     @pytest.mark.asyncio
     async def test_should_generate_professional_response(self):
@@ -63,14 +63,14 @@ class TestConsultantAgentCoreFeatures:
         agent = ConsultantAgent()
         await agent.knowledge_retriever.initialize()
         
-        question = "按摩对身体有什么作用？"
+        question = "数学基础薄弱适合怎么补？"
         response = await agent.consult(question)
         
         assert len(response) > 50, f"专业回答应该有一定长度，但只有{len(response)}字符：{response}"
-        assert not response.startswith("抱歉"), f"对于按摩相关问题不应该道歉开头：{response[:100]}..."
+        assert not response.startswith("抱歉"), f"对于家教课程相关问题不应该道歉开头：{response[:100]}..."
         assert "不知道" not in response, f"专业回答不应该说不知道：{response[:100]}..."
         
-        professional_terms = ["血液循环", "肌肉", "疲劳", "放松", "促进", "缓解"]
+        professional_terms = ["基础", "薄弱", "老师", "课程", "学习", "目标", "试听"]
         has_professional_content = any(term in response for term in professional_terms)
         assert has_professional_content, f"回答应该包含专业词汇，但得到：{response[:200]}..."
 
@@ -100,7 +100,7 @@ class TestConsultantAgentEdgeCases:
         agent = ConsultantAgent()
         await agent.knowledge_retriever.initialize()
         
-        question = "按摩的主要好处是什么？"
+        question = "试听课主要会了解哪些学习情况？"
         
         response_tokens = []
         async for token in agent.consult_stream(question):
@@ -111,9 +111,9 @@ class TestConsultantAgentEdgeCases:
         
         normal_response = await agent.consult(question)
         
-        massage_keywords = ["按摩", "好处", "效果", "肌肉", "血液"]
-        stream_has_content = any(keyword in stream_response for keyword in massage_keywords)
-        normal_has_content = any(keyword in normal_response for keyword in massage_keywords)
+        tutoring_keywords = ["试听", "课程", "老师", "学习", "基础", "年级"]
+        stream_has_content = any(keyword in stream_response for keyword in tutoring_keywords)
+        normal_has_content = any(keyword in normal_response for keyword in tutoring_keywords)
         
         assert stream_has_content or normal_has_content, \
             f"至少一种模式应该返回相关内容\n流式：{stream_response[:100]}...\n普通：{normal_response[:100]}..."

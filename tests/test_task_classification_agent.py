@@ -30,9 +30,9 @@ class TestTaskClassificationAgentRealWorkflow:
         agent = TaskClassificationAgent(appointment_agent, consultant_agent)
         
         consultation_requests = [
-            "按摩有什么好处？",
-            "推拿多少钱？",
-            "你们有什么服务项目？",
+            "初中数学一对一怎么安排？",
+            "高中物理课程怎么收费？",
+            "你们有哪些课程和适合年级？",
         ]
         
         for user_input in consultation_requests:
@@ -75,7 +75,7 @@ class TestTaskClassificationAgentRealWorkflow:
             assert len(response) > 0, f"无关请求应该有响应内容，输入：{user_input}"
             
             # 应该是拒绝信息
-            expected_rejection = "暂不支持该类型任务。请只询问和按摩、预约相关的问题。"
+            expected_rejection = "暂不支持该类型任务。请只询问和课程咨询、试听课预约、正式排课相关的问题。"
             assert response == expected_rejection, f"无关请求应该返回标准拒绝信息，输入：{user_input}，响应：{response}"
             
             print(f"无关请求测试 - 输入：'{user_input}'，正确拒绝")
@@ -92,7 +92,7 @@ class TestTaskClassificationAgentRealWorkflow:
         
         agent = TaskClassificationAgent(appointment_agent, consultant_agent)
         
-        user_input = "我想预约明天下午的按摩"
+        user_input = "我想预约明天下午的初中英语试听课"
         
         # 测试流式处理
         response_tokens = []
@@ -153,7 +153,7 @@ class TestTaskClassificationAgentRealWorkflow:
         
         # 应该能设置业务上下文
         try:
-            agent.set_business_context("推拿服务")
+            agent.set_business_context("家教课程咨询与排课服务")
             # 不应该抛出异常
         except Exception as e:
             pytest.fail(f"设置业务上下文时出错：{e}")
@@ -183,7 +183,7 @@ class TestTaskClassificationAgentEdgeCases:
                 assert len(response) > 0, f"无效输入应该有响应内容，输入：'{invalid_input}'"
                 
                 # 很可能被当作无关请求处理
-                expected_rejection = "暂不支持该类型任务。请只询问和按摩、预约相关的问题。"
+                expected_rejection = "暂不支持该类型任务。请只询问和课程咨询、试听课预约、正式排课相关的问题。"
                 is_rejection = response == expected_rejection
                 is_error = response.startswith("处理任务时发生错误")
                 
@@ -209,9 +209,9 @@ class TestTaskClassificationAgentEdgeCases:
         agent = TaskClassificationAgent(appointment_agent, consultant_agent)
         
         ambiguous_inputs = [
-            "按摩",  # 单词，可能是预约也可能是咨询
-            "技师",  # 可能是查询技师信息
-            "服务",  # 很模糊
+            "数学",  # 单词，可能是课程咨询也可能是预约
+            "老师",  # 可能是查询老师信息
+            "课程",  # 很模糊
             "帮助",  # 很泛泛
         ]
         

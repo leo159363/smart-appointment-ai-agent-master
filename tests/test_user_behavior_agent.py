@@ -20,7 +20,7 @@ class TestUserBehaviorAgentCoreFeatures:
         """
         测试：应该正确记录用户行为
         
-        用户进行预约、咨询等操作时，应该记录相关行为数据
+        用户进行试听预约、课程咨询等操作时，应该记录相关行为数据
         """
         agent = UserBehaviorAgent()
         
@@ -28,7 +28,7 @@ class TestUserBehaviorAgentCoreFeatures:
         behavior_data = {
             "user_id": "test_user_001",
             "action": "appointment_request",
-            "service_type": "按摩",
+            "service_type": "初中英语试听课",
             "preferred_time": "下午",
             "gender_preference": "女",
             "timestamp": datetime.now()
@@ -47,7 +47,7 @@ class TestUserBehaviorAgentCoreFeatures:
             
             latest_behavior = recorded_behavior[0]
             assert latest_behavior["action"] == "appointment_request"
-            assert latest_behavior["service_type"] == "按摩"
+            assert latest_behavior["service_type"] == "初中英语试听课"
             
         except Exception as e:
             pytest.fail(f"记录用户行为时出错：{e}")
@@ -56,17 +56,17 @@ class TestUserBehaviorAgentCoreFeatures:
         """
         测试：应该正确分析用户偏好
         
-        基于历史行为数据，分析用户的服务偏好、时间偏好等
+        基于历史行为数据，分析用户的课程偏好、时间偏好等
         """
         agent = UserBehaviorAgent()
         
         # 模拟多次行为记录
         user_id = "test_user_002"
         behaviors = [
-            {"user_id": user_id, "action": "appointment", "service_type": "按摩", "preferred_time": "下午"},
-            {"user_id": user_id, "action": "appointment", "service_type": "按摩", "preferred_time": "下午"},
-            {"user_id": user_id, "action": "appointment", "service_type": "推拿", "preferred_time": "上午"},
-            {"user_id": user_id, "action": "consultation", "topic": "按摩效果"},
+            {"user_id": user_id, "action": "appointment", "service_type": "初中数学试听课", "preferred_time": "下午"},
+            {"user_id": user_id, "action": "appointment", "service_type": "初中数学试听课", "preferred_time": "下午"},
+            {"user_id": user_id, "action": "appointment", "service_type": "高中物理试听课", "preferred_time": "上午"},
+            {"user_id": user_id, "action": "consultation", "topic": "数学基础补弱"},
         ]
         
         # 记录所有行为
@@ -80,9 +80,9 @@ class TestUserBehaviorAgentCoreFeatures:
             # 应该识别出偏好模式
             assert preferences is not None, "应该返回偏好分析结果"
             
-            # 应该识别出按摩是最常选择的服务（这个测试可能会失败）
+            # 应该识别出初中数学试听课是最常选择的课程（这个测试可能会失败）
             preferred_service = preferences.get("preferred_service_type")
-            assert preferred_service == "按摩", f"应该识别按摩为偏好服务，但得到：{preferred_service}"
+            assert preferred_service == "初中数学试听课", f"应该识别初中数学试听课为偏好课程，但得到：{preferred_service}"
             
             # 应该识别出下午是偏好时间
             preferred_time = preferences.get("preferred_time")
@@ -95,7 +95,7 @@ class TestUserBehaviorAgentCoreFeatures:
         """
         测试：应该生成个性化推荐
         
-        基于用户历史行为和偏好，推荐合适的服务和时间
+        基于用户历史行为和偏好，推荐合适的课程和时间
         """
         agent = UserBehaviorAgent()
         
@@ -103,8 +103,8 @@ class TestUserBehaviorAgentCoreFeatures:
         
         # 建立用户行为历史
         historical_behaviors = [
-            {"user_id": user_id, "service_type": "深层按摩", "satisfaction_rating": 5},
-            {"user_id": user_id, "service_type": "肩颈按摩", "satisfaction_rating": 4},
+            {"user_id": user_id, "service_type": "数学基础补弱课", "satisfaction_rating": 5},
+            {"user_id": user_id, "service_type": "初中英语听说课", "satisfaction_rating": 4},
             {"user_id": user_id, "preferred_time": "周末", "completion_status": "completed"},
         ]
         
@@ -121,8 +121,8 @@ class TestUserBehaviorAgentCoreFeatures:
             
             # 推荐应该与用户历史偏好相关
             recommended_services = [rec.get("service_type", "") for rec in recommendations]
-            massage_related = any("按摩" in service for service in recommended_services)
-            assert massage_related, f"推荐应该包含按摩相关服务，但得到：{recommended_services}"
+            tutoring_related = any(("数学" in service or "英语" in service or "课程" in service) for service in recommended_services)
+            assert tutoring_related, f"推荐应该包含家教课程相关内容，但得到：{recommended_services}"
             
         except Exception as e:
             pytest.fail(f"生成个性化推荐时出错：{e}")
@@ -131,7 +131,7 @@ class TestUserBehaviorAgentCoreFeatures:
         """
         测试：应该识别行为模式
         
-        用户的预约频率、取消率、偏好变化等模式
+        用户的预约频率、取消率、学习需求变化等模式
         """
         agent = UserBehaviorAgent()
         
@@ -146,7 +146,7 @@ class TestUserBehaviorAgentCoreFeatures:
                 "user_id": user_id,
                 "action": "appointment_request",
                 "timestamp": base_time + timedelta(days=i*3),
-                "service_type": "按摩" if i % 2 == 0 else "推拿"
+                "service_type": "初中数学试听课" if i % 2 == 0 else "高中物理试听课"
             })
         
         # 添加一些取消记录
@@ -190,9 +190,9 @@ class TestUserBehaviorAgentCoreFeatures:
         
         # 创建有趣的行为数据用于洞察
         insight_data = [
-            {"user_id": user_id, "action": "consultation", "topic": "按摩效果", "timestamp": datetime.now()},
-            {"user_id": user_id, "action": "appointment", "service_type": "按摩", "timestamp": datetime.now()},
-            {"user_id": user_id, "action": "feedback", "rating": 5, "comment": "很满意"},
+            {"user_id": user_id, "action": "consultation", "topic": "数学基础补弱", "timestamp": datetime.now()},
+            {"user_id": user_id, "action": "appointment", "service_type": "初中数学试听课", "timestamp": datetime.now()},
+            {"user_id": user_id, "action": "feedback", "rating": 5, "comment": "老师讲得很清楚"},
         ]
         
         for data in insight_data:
@@ -231,7 +231,7 @@ class TestUserBehaviorAgentDataManagement:
         
         # 设置用户偏好
         preferences = {
-            "preferred_service_types": ["按摩", "推拿"],
+            "preferred_service_types": ["初中数学试听课", "高中物理试听课"],
             "preferred_times": ["下午", "晚上"],
             "gender_preference": "女",
             "communication_style": "详细"
@@ -247,7 +247,7 @@ class TestUserBehaviorAgentDataManagement:
             # 应该能正确检索
             assert retrieved_prefs is not None, "应该能检索到偏好设置"
             assert retrieved_prefs["gender_preference"] == "女"
-            assert "按摩" in retrieved_prefs["preferred_service_types"]
+            assert "初中数学试听课" in retrieved_prefs["preferred_service_types"]
             
             # 更新偏好
             updated_prefs = {"preferred_times": ["上午"]}
@@ -270,10 +270,10 @@ class TestUserBehaviorAgentDataManagement:
         
         # 创建多个用户的数据
         users_data = [
-            {"user_id": "user_1", "service_type": "按摩", "satisfaction": 5},
-            {"user_id": "user_2", "service_type": "按摩", "satisfaction": 4},
-            {"user_id": "user_3", "service_type": "推拿", "satisfaction": 3},
-            {"user_id": "user_1", "service_type": "按摩", "satisfaction": 5},
+            {"user_id": "user_1", "service_type": "初中数学试听课", "satisfaction": 5},
+            {"user_id": "user_2", "service_type": "初中数学试听课", "satisfaction": 4},
+            {"user_id": "user_3", "service_type": "高中物理试听课", "satisfaction": 3},
+            {"user_id": "user_1", "service_type": "初中数学试听课", "satisfaction": 5},
         ]
         
         for data in users_data:
@@ -289,10 +289,10 @@ class TestUserBehaviorAgentDataManagement:
             # 应该返回聚合结果
             assert aggregated is not None, "应该返回聚合结果"
             
-            # 应该包含按摩和推拿的统计
+            # 应该包含不同课程的统计
             service_stats = aggregated.get("service_type_stats", {})
-            assert "按摩" in str(service_stats), "聚合结果应该包含按摩统计"
-            assert "推拿" in str(service_stats), "聚合结果应该包含推拿统计"
+            assert "初中数学试听课" in str(service_stats), "聚合结果应该包含初中数学试听课统计"
+            assert "高中物理试听课" in str(service_stats), "聚合结果应该包含高中物理试听课统计"
             
         except Exception as e:
             pytest.fail(f"数据聚合时出错：{e}")
@@ -312,7 +312,7 @@ class TestUserBehaviorAgentDataManagement:
             "user_id": user_id,
             "phone_number": "13800138000",  # 敏感信息
             "real_name": "张三",  # 敏感信息
-            "service_type": "按摩",
+            "service_type": "初中数学试听课",
             "timestamp": datetime.now() - timedelta(days=400)  # 过期数据
         }
         
