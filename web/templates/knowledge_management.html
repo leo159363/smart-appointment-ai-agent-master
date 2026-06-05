@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知识库管理 - 智能预约系统</title>
+    <title>课程知识库管理 - 家教咨询与排课系统</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -466,7 +466,7 @@
     <div class="container">
         <div class="header">
             <h2><i class="fas fa-brain"></i> 知识库管理系统</h2>
-            <p>管理推拿房知识库，测试智能检索功能</p>
+            <p>管理家教培训机构课程知识库，测试课程咨询检索功能</p>
         </div>
         
         <div class="content">
@@ -500,7 +500,7 @@
                 <h3>🔍 智能搜索测试</h3>
                 <div class="form-group">
                     <label for="searchQuery">搜索查询：</label>
-                    <input type="text" id="searchQuery" class="form-control" placeholder="输入搜索内容，如：营业时间、价格、技师等">
+                    <input type="text" id="searchQuery" class="form-control" placeholder="输入搜索内容，如：课程体系、收费规则、老师介绍等">
                 </div>
                 <div style="display: flex; gap: 15px;">
                     <div class="form-group" style="flex: 1;">
@@ -543,11 +543,11 @@
                     </div>
                     <div class="form-group">
                         <label for="newCategory">分类：</label>
-                        <input type="text" id="newCategory" class="form-control" placeholder="如：营业时间、服务项目等">
+                        <input type="text" id="newCategory" class="form-control" placeholder="如：课程体系、收费规则、试听课规则等">
                     </div>
                     <div class="form-group">
                         <label for="newKeywords">关键词（用逗号分隔）：</label>
-                        <input type="text" id="newKeywords" class="form-control" placeholder="如：营业时间,开门,关门,几点">
+                        <input type="text" id="newKeywords" class="form-control" placeholder="如：课程,收费,老师,试听课">
                     </div>
                     <button type="submit" class="btn btn-success">✅ 添加知识</button>
                     <button type="button" class="btn btn-secondary" onclick="clearAddForm()">🗑️ 清空表单</button>

@@ -1,14 +1,15 @@
 """
-知识库管理API
+课程知识库管理API
 """
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/knowledge", tags=["知识库管理"])
+router = APIRouter(prefix="/api/knowledge", tags=["课程知识库管理"])
 
 
 class KnowledgeItem(BaseModel):
+    """课程知识库条目"""
     id: int = None
     question: str
     answer: str
@@ -16,12 +17,13 @@ class KnowledgeItem(BaseModel):
 
 
 class SearchRequest(BaseModel):
+    """课程知识库搜索请求"""
     query: str
 
 
-@router.get("/")
+@router.get("/", summary="获取所有课程知识条目")
 async def get_all_knowledge():
-    """获取所有知识条目"""
+    """获取所有课程知识库条目"""
     try:
         from services.knowledge_service import KnowledgeService
         knowledge_service = KnowledgeService()
@@ -33,7 +35,7 @@ async def get_all_knowledge():
         try:
             categories = knowledge_service.get_all_categories()
         except Exception as e:
-            print(f"获取categories失败: {e}")
+            print(f"获取课程知识分类失败: {e}")
             categories = []
         
         return {
@@ -43,12 +45,12 @@ async def get_all_knowledge():
             "status": "success"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取知识库失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取课程知识库失败: {str(e)}")
 
 
-@router.get("/{knowledge_id}")
+@router.get("/{knowledge_id}", summary="获取单条课程知识")
 async def get_knowledge(knowledge_id: int):
-    """获取特定知识条目"""
+    """获取特定课程知识条目"""
     try:
         from services.knowledge_service import KnowledgeService
         knowledge_service = KnowledgeService()
@@ -56,7 +58,7 @@ async def get_knowledge(knowledge_id: int):
             await knowledge_service.initialize()
         entry = knowledge_service.get_document(knowledge_id)
         if not entry:
-            raise HTTPException(status_code=404, detail="知识条目不存在")
+            raise HTTPException(status_code=404, detail="课程知识条目不存在")
         return {
             "status": "success",
             "data": entry
@@ -64,12 +66,12 @@ async def get_knowledge(knowledge_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取知识条目失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取课程知识条目失败: {str(e)}")
 
 
-@router.post("/")
+@router.post("/", summary="添加课程知识条目")
 async def add_knowledge(item: KnowledgeItem):
-    """添加新的知识条目"""
+    """添加新的课程知识条目"""
     try:
         knowledge_service = await app.get_knowledge_service()
         # 将问答组合成文档内容
@@ -80,16 +82,16 @@ async def add_knowledge(item: KnowledgeItem):
         )
         return {
             "status": "success",
-            "message": "知识条目添加成功",
+            "message": "课程知识条目添加成功",
             "data": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"添加知识条目失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"添加课程知识条目失败: {str(e)}")
 
 
-@router.put("/{knowledge_id}")
+@router.put("/{knowledge_id}", summary="更新课程知识条目")
 async def update_knowledge(knowledge_id: int, item: KnowledgeItem):
-    """更新知识条目"""
+    """更新课程知识条目"""
     try:
         from services.knowledge_service import KnowledgeService
         knowledge_service = KnowledgeService()
@@ -103,21 +105,21 @@ async def update_knowledge(knowledge_id: int, item: KnowledgeItem):
             category=item.category
         )
         if not result:
-            raise HTTPException(status_code=404, detail="知识条目不存在")
+            raise HTTPException(status_code=404, detail="课程知识条目不存在")
         return {
             "status": "success",
-            "message": "知识条目更新成功",
+            "message": "课程知识条目更新成功",
             "data": result
         }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"更新知识条目失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"更新课程知识条目失败: {str(e)}")
 
 
-@router.delete("/{knowledge_id}")
+@router.delete("/{knowledge_id}", summary="删除课程知识条目")
 async def delete_knowledge(knowledge_id: int):
-    """删除知识条目"""
+    """删除课程知识条目"""
     try:
         from services.knowledge_service import KnowledgeService
         knowledge_service = KnowledgeService()
@@ -125,20 +127,20 @@ async def delete_knowledge(knowledge_id: int):
             await knowledge_service.initialize()
         result = await knowledge_service.delete_document(knowledge_id)
         if not result:
-            raise HTTPException(status_code=404, detail="知识条目不存在")
+            raise HTTPException(status_code=404, detail="课程知识条目不存在")
         return {
             "status": "success",
-            "message": "知识条目删除成功"
+            "message": "课程知识条目删除成功"
         }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"删除知识条目失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"删除课程知识条目失败: {str(e)}")
 
 
-@router.post("/search")
+@router.post("/search", summary="搜索课程知识库")
 async def search_knowledge(request: SearchRequest):
-    """搜索知识库"""
+    """搜索课程知识库"""
     try:
         from services.knowledge_service import KnowledgeService
         knowledge_service = KnowledgeService()
@@ -151,4 +153,4 @@ async def search_knowledge(request: SearchRequest):
             "count": len(results)
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"搜索知识库失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"搜索课程知识库失败: {str(e)}")

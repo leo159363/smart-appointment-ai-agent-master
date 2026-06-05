@@ -97,7 +97,7 @@ class ClassificationProcessor:
                     async with self.agent_router.consultant_agent as agent:
                         return await agent.consult(task)
                 else:
-                    return "暂不支持该类型任务。请只询问和按摩、预约相关的问题。"
+                    return "暂不支持该类型任务。请只询问和课程咨询、试听课预约、正式排课相关的问题。"
             else:
                 # 根据当前状态继续处理
                 if self.state_manager.is_in_appointment_flow():

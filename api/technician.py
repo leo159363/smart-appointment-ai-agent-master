@@ -1,38 +1,38 @@
 """
-技师API
+老师管理API
 
-提供技师信息和排班查询接口
+提供老师信息、老师状态和老师课表查询接口。接口路径和内部字段仍沿用 technician 命名以保持兼容。
 """
 
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/api/technicians", tags=["技师管理"])
+router = APIRouter(prefix="/api/technicians", tags=["老师管理"])
 
 
 class TechnicianResponse(BaseModel):
-    """技师信息响应"""
-    id: int
-    name: str
-    gender: str
-    strength: str
+    """老师信息响应；内部模型名保留 TechnicianResponse"""
+    id: int = Field(..., description="老师 ID；内部字段仍沿用 technician id")
+    name: str = Field(..., description="老师姓名")
+    gender: str = Field(..., description="老师性别")
+    strength: str = Field(..., description="老师擅长科目、适合年级、教学风格和擅长方向")
 
 
 class ScheduleResponse(BaseModel):
-    """排班信息响应"""
-    id: int
-    technician_id: int
-    start_time: str
-    end_time: str
-    status: str
-    appointment_id: int | None = None
+    """老师课表信息响应"""
+    id: int = Field(..., description="课表记录 ID")
+    technician_id: int = Field(..., description="老师 ID；字段名为兼容旧版本暂时保留 technician_id")
+    start_time: str = Field(..., description="课程或可授课时段开始时间")
+    end_time: str = Field(..., description="课程或可授课时段结束时间")
+    status: str = Field(..., description="课表状态，例如空闲或已排课")
+    appointment_id: int | None = Field(None, description="关联的试听课预约或正式排课 ID")
 
 
-@router.get("/", response_model=List[TechnicianResponse], summary="获取所有技师")
+@router.get("/", response_model=List[TechnicianResponse], summary="获取所有老师")
 async def get_all_technicians():
-    """获取所有技师信息"""
+    """获取所有老师信息"""
     try:
         from services.technician_service import TechnicianService
         technician_service = TechnicianService()
@@ -49,12 +49,12 @@ async def get_all_technicians():
             for tech in technicians
         ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取技师信息失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取老师信息失败: {str(e)}")
 
 
-@router.get("/{technician_id}/schedule", response_model=List[ScheduleResponse], summary="获取技师排班")
+@router.get("/{technician_id}/schedule", response_model=List[ScheduleResponse], summary="获取老师课表")
 async def get_technician_schedule(technician_id: int):
-    """获取指定技师今天的排班信息"""
+    """获取指定老师今天的课表信息；路径参数名仍保留 technician_id"""
     try:
         from services.technician_service import TechnicianService
         from config.time_config import time_config
@@ -62,12 +62,12 @@ async def get_technician_schedule(technician_id: int):
         technician_service = TechnicianService()
         technician_service.initialize_default_technicians()
         
-        # 获取技师信息确认存在
+        # 获取老师信息确认存在
         tech = technician_service.get_technician_by_id(technician_id)
         if not tech:
-            raise HTTPException(status_code=404, detail="技师不存在")
+            raise HTTPException(status_code=404, detail="老师不存在")
         
-        # 获取今天的排班
+        # 获取今天的课表
         today = time_config.today()
         schedules = technician_service.get_technician_schedules(technician_id, today)
         
@@ -85,12 +85,12 @@ async def get_technician_schedule(technician_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取排班信息失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取老师课表失败: {str(e)}")
 
 
-@router.get("/{technician_id}", response_model=TechnicianResponse, summary="获取单个技师信息")
+@router.get("/{technician_id}", response_model=TechnicianResponse, summary="获取单个老师信息")
 async def get_technician(technician_id: int):
-    """获取指定技师的详细信息"""
+    """获取指定老师的详细信息；路径参数名仍保留 technician_id"""
     try:
         from services.technician_service import TechnicianService
         
@@ -99,7 +99,7 @@ async def get_technician(technician_id: int):
         tech = technician_service.get_technician_by_id(technician_id)
         
         if not tech:
-            raise HTTPException(status_code=404, detail="技师不存在")
+            raise HTTPException(status_code=404, detail="老师不存在")
         
         return TechnicianResponse(
             id=tech["id"],
@@ -110,12 +110,12 @@ async def get_technician(technician_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取技师信息失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取老师信息失败: {str(e)}")
 
 
-@router.get("/schedules/today", summary="获取所有技师今日排班")
+@router.get("/schedules/today", summary="获取所有老师今日课表")
 async def get_all_technicians_schedule_today():
-    """获取所有技师今天的排班信息"""
+    """获取所有老师今天的课表信息"""
     try:
         from services.technician_service import TechnicianService
         from config.time_config import time_config
@@ -123,7 +123,7 @@ async def get_all_technicians_schedule_today():
         technician_service = TechnicianService()
         technician_service.initialize_default_technicians()
         
-        # 获取所有技师
+        # 获取所有老师
         all_technicians = technician_service.get_all_technicians()
         today = time_config.today()
         
@@ -132,7 +132,7 @@ async def get_all_technicians_schedule_today():
             tech_id = tech["id"]
             tech_name = tech["name"]
             
-            # 获取该技师今天的排班
+            # 获取该老师今天的课表
             tech_schedules = technician_service.get_technician_schedules(tech_id, today)
             
             busy_periods = []
@@ -153,4 +153,4 @@ async def get_all_technicians_schedule_today():
         return schedules_data
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取排班信息失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取老师课表失败: {str(e)}")

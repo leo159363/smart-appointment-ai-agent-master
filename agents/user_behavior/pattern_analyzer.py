@@ -2,8 +2,8 @@
 简化版用户行为分析器
 
 核心功能：
-1. 分析用户最喜欢的技师
-2. 分析用户常用的服务项目和时长
+1. 分析用户偏好的老师
+2. 分析用户常选的课程/学科和时长
 3. 判断用户是否需要回访邀请
 4. 生成个性化回访消息
 """
@@ -31,7 +31,7 @@ class PatternAnalyzer:
             return None
     
     def analyze_user_preferences(self, user_id: str = "default_user") -> Optional[Dict[str, Any]]:
-        """分析用户偏好：最喜欢的技师、常用服务、常用时长"""
+        """分析用户偏好：偏好的老师、常选课程/学科、常用时长"""
         try:
             # 获取用户所有预约历史
             if self.behavior_service:
@@ -49,7 +49,7 @@ class PatternAnalyzer:
             if not appointments:
                 return None
             
-            # 统计技师偏好
+            # 统计老师偏好
             technician_counts = {}
             service_counts = {}
             duration_counts = {}
@@ -57,12 +57,12 @@ class PatternAnalyzer:
             for appointment in appointments:
                 data = appointment.get('action_data', {})
                 
-                # 统计技师 - 技师ID存储在单独字段中
+                # 统计老师 - 老师ID存储在单独字段中
                 tech_id = appointment.get('technician_id')  # 从记录本身获取
                 if tech_id:
                     technician_counts[tech_id] = technician_counts.get(tech_id, 0) + 1
                 
-                # 统计服务项目
+                # 统计课程/学科
                 service = data.get('project')
                 if service:
                     service_counts[service] = service_counts.get(service, 0) + 1
@@ -119,11 +119,11 @@ class PatternAnalyzer:
         try:
             preferences = self.analyze_user_preferences(user_id)
             if not preferences:
-                return "您好！好久没见了，要不要预约一个按摩放松一下？"
+                return "您好！好久没联系了，是否需要预约一次学习情况沟通或试听课，帮您重新规划后续课程安排？"
             
-            # 获取技师信息
+            # 获取老师信息
             tech_id = preferences.get('favorite_technician_id')
-            service = preferences.get('favorite_service', '按摩')
+            service = preferences.get('favorite_service', '课程辅导')
             duration = preferences.get('favorite_duration', 60)
             
             # 构建个性化消息
@@ -131,14 +131,14 @@ class PatternAnalyzer:
                 from db import TechnicianDBRouter
                 db = TechnicianDBRouter()
                 tech_info = db.get_technician_by_id(tech_id)
-                tech_name = tech_info.get('name', '您偏爱的技师') if tech_info else '您偏爱的技师'
+                tech_name = tech_info.get('name', '您偏好的老师') if tech_info else '您偏好的老师'
                 
-                message = f"您好！{tech_name}最近有空档，您之前很喜欢他/她的{service}服务。"
+                message = f"您好！{tech_name}最近有可授课时间，您之前比较关注{service}。"
                 if duration:
                     message += f"按照您习惯的{duration}分钟，"
-                message += "要不要预约一下放松一下？"
+                message += "是否需要安排一次学习沟通或试听课？"
             else:
-                message = f"您好！好久没见了，要不要预约一个{service}服务放松一下？"
+                message = f"您好！好久没联系了，是否需要预约一次{service}学习沟通或试听课？"
                 if duration:
                     message += f"按您习惯的{duration}分钟怎么样？"
             
@@ -146,4 +146,4 @@ class PatternAnalyzer:
             
         except Exception as e:
             self.logger.error(f"生成回访消息失败: {str(e)}")
-            return "您好！好久没见了，要不要预约一个按摩放松一下？"
+            return "您好！好久没联系了，是否需要预约一次学习情况沟通或试听课，帮您重新规划后续课程安排？"

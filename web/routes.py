@@ -43,14 +43,14 @@ async def chat_endpoint(chat: ChatRequest):
             yield token
     return StreamingResponse(token_generator(), media_type="text/plain")
 
-@router.get("/user_behavior", response_class=HTMLResponse, summary="用户行为分析页面")
+@router.get("/user_behavior", response_class=HTMLResponse, summary="学习需求分析页面")
 async def user_behavior_page(request: Request):
-    """用户行为分析页面"""
+    """学习需求分析页面"""
     return templates.TemplateResponse("user_behavior_analysis.html", {"request": request})
 
-@router.get("/knowledge", response_class=HTMLResponse, summary="知识库管理页面")
+@router.get("/knowledge", response_class=HTMLResponse, summary="课程知识库管理页面")
 async def knowledge_page(request: Request):
-    """知识库管理页面"""
+    """课程知识库管理页面"""
     # 通过API层获取知识库数据
     try:
         from api.knowledge import get_all_knowledge
@@ -73,10 +73,10 @@ async def knowledge_page(request: Request):
             "error": str(e)
         })
 
-@router.get("/technician", response_class=HTMLResponse, summary="技师状态页面")
+@router.get("/technician", response_class=HTMLResponse, summary="老师状态页面")
 async def technician_page(request: Request):
-    """技师状态页面"""
-    # 通过API层获取技师数据
+    """老师状态页面"""
+    # 通过API层获取老师数据，内部接口仍沿用 technician 命名
     try:
         from api.technician import get_all_technicians
         
@@ -94,9 +94,9 @@ async def technician_page(request: Request):
             "error": str(e)
         })
 
-@router.get("/technician_schedule", response_class=HTMLResponse, summary="技师排班页面")
+@router.get("/technician_schedule", response_class=HTMLResponse, summary="老师课表页面")
 async def technician_schedule_page(request: Request):
-    """技师排班页面"""
+    """老师课表页面"""
     try:
         from api.technician import get_all_technicians_schedule_today
         from config.time_config import time_config
@@ -104,10 +104,10 @@ async def technician_schedule_page(request: Request):
         # 获取当前日期
         current_date = time_config.current_date_str()
         
-        # 通过API层获取所有技师的排班数据
+        # 通过API层获取所有老师的课表数据，内部接口仍沿用 technician 命名
         schedules_data = await get_all_technicians_schedule_today()
         
-        # 构建排班数据格式 - 直接使用API返回的数据
+        # 构建课表数据格式 - 直接使用API返回的数据
         schedule = []
         for schedule_item in schedules_data:
             schedule.append({
@@ -122,16 +122,16 @@ async def technician_schedule_page(request: Request):
             "current_date": current_date
         })
     except Exception as e:
-        logger.error(f"加载技师排班数据失败: {str(e)}")
+        logger.error(f"加载老师课表数据失败: {str(e)}")
         return templates.TemplateResponse("technician_schedule.html", {
             "request": request,
             "schedule": [],
             "error": str(e)
         })
 
-@router.get("/user_behavior_analysis", response_class=HTMLResponse, summary="用户行为分析页面")
+@router.get("/user_behavior_analysis", response_class=HTMLResponse, summary="学习需求分析页面")
 async def user_behavior_analysis_page(request: Request):
-    """用户行为分析页面"""
+    """学习需求分析页面"""
     return templates.TemplateResponse("user_behavior_analysis.html", {"request": request})
 
 @router.get("/admin", response_class=HTMLResponse, summary="系统管理页面")
@@ -147,7 +147,7 @@ async def admin_dashboard(request: Request):
         knowledge_count = knowledge_data.get("total_count", 0)
         categories = knowledge_data.get("categories", [])
         
-        # 获取技师数据
+        # 获取老师数据，内部接口仍沿用 technician 命名
         technicians = await get_all_technicians()
         
         # 数据库信息
@@ -161,7 +161,7 @@ async def admin_dashboard(request: Request):
         return templates.TemplateResponse("admin_dashboard.html", {
             "request": request,
             "db_info": db_info,
-            "technicians": technicians[:5]  # 只显示前5个技师
+            "technicians": technicians[:5]  # 只显示前5位老师
         })
     except Exception as e:
         return templates.TemplateResponse("admin_dashboard.html", {
@@ -182,7 +182,7 @@ async def database_admin_page(request: Request):
         # 获取知识库数据
         knowledge_data = await get_all_knowledge()
         
-        # 获取技师数据
+        # 获取老师数据，内部接口仍沿用 technician 命名
         technicians = await get_all_technicians()
         
         stats = {

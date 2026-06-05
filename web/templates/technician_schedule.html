@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>技师排班管理</title>
+    <title>老师课表管理</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -291,31 +291,31 @@
         <div class="header">
             <h2>
                 <i class="fas fa-calendar-alt"></i>
-                技师排班管理
+                老师课表管理
             </h2>
-            <p>实时查看技师工作时间安排和预约状态</p>
+            <p>实时查看老师可授课时间和已排课程状态</p>
         </div>
         
         <div class="content">
             <div class="schedule-info">
-                <h3><i class="fas fa-clock"></i> 营业时间说明</h3>
+                <h3><i class="fas fa-clock"></i> 上课时间说明</h3>
                 <p>今日日期：{{ current_date }}（北京时间）</p>
-                <p>工作时间：12:00 - 22:00 （共10小时）</p>
-                <p>红色区域表示已预约时间段，空白区域为可预约时间</p>
+                <p>可排课时间：12:00 - 22:00 （共10小时）</p>
+                <p>红色区域表示已排课程时间段，空白区域为可预约试听或正式排课时间</p>
             </div>
             
             <div class="time-legend">
                 <div class="legend-item">
                     <i class="fas fa-clock"></i>
-                    <span>12:00 开始营业</span>
+                    <span>12:00 开始可排课</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-dot"></span>
-                    <span>已预约时间段</span>
+                    <span>已排课程时间段</span>
                 </div>
                 <div class="legend-item">
                     <i class="fas fa-moon"></i>
-                    <span>22:00 结束营业</span>
+                    <span>22:00 结束排课</span>
                 </div>
             </div>
             
@@ -336,7 +336,7 @@
                                 {% endfor %}
                             </div>
                             
-                            <!-- 预约时间段 -->
+                            <!-- 已排课程时间段 -->
                             {% for period in tech.busy_periods %}
                             {% set start = period.start.split(':') %}
                             {% set end = period.end.split(':') %}
@@ -346,8 +346,8 @@
                             {% set total_minutes = (22 - 12) * 60 %}
                             {% set left = ((start_minutes - base_minutes) / total_minutes) * 100 %}
                             {% set width = ((end_minutes - start_minutes) / total_minutes) * 100 %}
-                            <div class="busy-block" style="left:{{ left }}%;width:{{ width }}%;" title="预约时间: {{ period.start }} - {{ period.end }}">
-                                <i class="fas fa-spa"></i>
+                            <div class="busy-block" style="left:{{ left }}%;width:{{ width }}%;" title="已排课程时间: {{ period.start }} - {{ period.end }}">
+                                <i class="fas fa-book-open"></i>
                                 {{ period.start }}~{{ period.end }}
                             </div>
                             {% endfor %}
@@ -358,7 +358,7 @@
                     <div class="empty-state">
                         <i class="fas fa-calendar-check"></i>
                         <h3>暂无排班信息</h3>
-                        <p>当前没有技师排班数据</p>
+                        <p>当前没有老师课表数据</p>
                     </div>
                 {% endif %}
             </div>

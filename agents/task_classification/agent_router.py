@@ -106,7 +106,7 @@ class AgentRouter:
         Yields:
             str: 回复内容
         """
-        reply = "暂不支持该类型任务。请只询问和按摩、预约相关的问题。"
+        reply = "暂不支持该类型任务。请只询问和课程咨询、试听课预约、正式排课相关的问题。"
         yield "[REPLY][归类机器人]"
         for char in reply:
             yield char

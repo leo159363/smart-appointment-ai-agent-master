@@ -1,5 +1,5 @@
 """
-简化的预约API
+简化的试听课预约与正式排课API
 
 只保留第一版核心功能
 """
@@ -10,12 +10,12 @@ from .core.response_models import (
     DataResponse
 )
 
-router = APIRouter(prefix="/api/appointment", tags=["预约管理"])
+router = APIRouter(prefix="/api/appointment", tags=["试听课预约与正式排课"])
 
 
-@router.post("/create", response_model=DataResponse)
+@router.post("/create", response_model=DataResponse, summary="创建试听课预约或正式排课")
 async def create_appointment(request: AppointmentRequest):
-    """创建预约"""
+    """创建试听课预约或正式排课；接口路径和字段名仍保留 appointment/service_type 以保持兼容"""
     try:
         # 简化实现 - 直接导入需要的服务
         from agents.appointment_agent import AppointmentAgent
@@ -23,7 +23,7 @@ async def create_appointment(request: AppointmentRequest):
         result = await agent.process_appointment_request(request.dict())
         
         return DataResponse(
-            message="预约创建成功",
+            message="试听课预约或正式排课创建成功",
             data=result
         )
     except Exception as e:

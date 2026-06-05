@@ -1,5 +1,5 @@
 """
-简化的咨询API
+简化的课程咨询API
 
 只保留第一版核心功能
 """
@@ -10,12 +10,12 @@ from .core.response_models import (
     DataResponse
 )
 
-router = APIRouter(prefix="/api/consultation", tags=["咨询服务"])
+router = APIRouter(prefix="/api/consultation", tags=["课程咨询"])
 
 
-@router.post("/ask", response_model=DataResponse)
+@router.post("/ask", response_model=DataResponse, summary="提交课程咨询问题")
 async def ask_consultation(request: ConsultationRequest):
-    """提交咨询问题"""
+    """提交课程体系、收费规则、老师介绍、试听课规则或学习规划相关咨询问题"""
     try:
         # 简化实现 - 直接导入需要的agent
         from agents.consultant_agent import ConsultantAgent
@@ -23,7 +23,7 @@ async def ask_consultation(request: ConsultationRequest):
         result = await agent.process_consultation(request.question)
         
         return DataResponse(
-            message="咨询处理成功",
+            message="课程咨询处理成功",
             data={"answer": result, "question": request.question}
         )
     except Exception as e:

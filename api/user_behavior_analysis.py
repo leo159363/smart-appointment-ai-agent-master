@@ -1,28 +1,28 @@
 """
-用户行为分析API - 简化版本
+学习需求分析API - 简化版本
 """
 
 from fastapi import APIRouter, HTTPException
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/api/user-behavior", tags=["用户行为分析"])
-router_underscore = APIRouter(prefix="/api/user_behavior", tags=["用户行为分析"])
+router = APIRouter(prefix="/api/user-behavior", tags=["学习需求分析"])
+router_underscore = APIRouter(prefix="/api/user_behavior", tags=["学习需求分析"])
 
 
 class UserAnalysisResponse(BaseModel):
-    """用户分析响应"""
-    favorite_technician_id: Optional[int] = None
-    favorite_technician_name: Optional[str] = None
-    favorite_service: Optional[str] = None
-    favorite_duration: Optional[int] = None
-    total_appointments: int = 0
-    days_since_last_appointment: Optional[int] = None
-    should_send_reminder: bool = False
+    """学习需求分析响应；内部字段名为兼容旧版本暂时保留"""
+    favorite_technician_id: Optional[int] = Field(None, description="偏好老师 ID；字段名暂时保留 favorite_technician_id")
+    favorite_technician_name: Optional[str] = Field(None, description="偏好老师姓名")
+    favorite_service: Optional[str] = Field(None, description="常选课程或学科；字段名暂时保留 favorite_service")
+    favorite_duration: Optional[int] = Field(None, description="常用课程时长，单位分钟")
+    total_appointments: int = Field(0, description="累计试听预约或正式排课次数")
+    days_since_last_appointment: Optional[int] = Field(None, description="距离上次试听预约或正式排课的天数")
+    should_send_reminder: bool = Field(False, description="是否建议发送学习跟进提醒")
 
 
 async def get_user_analysis(user_id: str = "default_user") -> UserAnalysisResponse:
-    """获取用户行为分析数据"""
+    """获取学习需求分析数据"""
     try:
         from agents.user_behavior_agent import UserBehaviorAgent
         
@@ -32,7 +32,7 @@ async def get_user_analysis(user_id: str = "default_user") -> UserAnalysisRespon
         if not analysis:
             return UserAnalysisResponse()
         
-        # 获取技师姓名
+        # 获取偏好老师姓名；内部数据访问仍沿用 technician 命名
         technician_name = None
         if analysis.get('favorite_technician_id'):
             from db import TechnicianDBRouter
@@ -53,42 +53,42 @@ async def get_user_analysis(user_id: str = "default_user") -> UserAnalysisRespon
     except Exception as e:
         # 记录异常日志并返回空数据，而不是硬编码的假数据
         import logging
-        logging.error(f"获取用户分析数据失败: {e}")
+        logging.error(f"获取学习需求分析数据失败: {e}")
         return UserAnalysisResponse()
 
 
-@router.get("/analysis", response_model=UserAnalysisResponse)
+@router.get("/analysis", response_model=UserAnalysisResponse, summary="获取默认学生/家长学习需求分析")
 async def get_default_user_analysis():
-    """获取默认用户的行为分析数据"""
+    """获取默认学生/家长的学习需求分析数据"""
     return await get_user_analysis("default_user")
 
 
-@router.get("/dashboard_data", response_model=UserAnalysisResponse)
+@router.get("/dashboard_data", response_model=UserAnalysisResponse, summary="获取学习需求仪表板数据")
 async def get_dashboard_data():
-    """获取用户行为仪表板数据"""
+    """获取学习需求仪表板数据"""
     return await get_user_analysis("default_user")
 
 
-@router_underscore.get("/dashboard_data", response_model=UserAnalysisResponse)
+@router_underscore.get("/dashboard_data", response_model=UserAnalysisResponse, summary="获取学习需求仪表板数据")
 async def get_dashboard_data_underscore():
-    """获取用户行为仪表板数据（下划线版本）"""
+    """获取学习需求仪表板数据（下划线版本）"""
     return await get_user_analysis("default_user")
 
 
 class ReminderRequest(BaseModel):
-    """发送提醒请求"""
-    user_id: str = "default_user"
+    """发送学习跟进提醒请求"""
+    user_id: str = Field("default_user", description="学生/家长用户 ID")
 
 
 class ReminderResponse(BaseModel):
-    """提醒消息响应"""
-    message: str
-    technician_available_times: Optional[list] = None
+    """学习跟进提醒消息响应"""
+    message: str = Field(..., description="面向学生或家长的学习跟进消息")
+    technician_available_times: Optional[list] = Field(None, description="老师可授课时间建议；字段名暂时保留 technician_available_times")
 
 
-@router.post("/send-reminder", response_model=ReminderResponse, summary="发送回访提醒")
+@router.post("/send-reminder", response_model=ReminderResponse, summary="生成学习跟进提醒")
 async def send_reminder(request: ReminderRequest):
-    """生成并返回回访提醒消息"""
+    """生成并返回学习跟进提醒消息"""
     try:
         from agents.user_behavior_agent import UserBehaviorAgent
         
@@ -102,8 +102,8 @@ async def send_reminder(request: ReminderRequest):
         
     except Exception as e:
         import logging
-        logging.error(f"生成回访提醒失败: {e}")
+        logging.error(f"生成学习跟进提醒失败: {e}")
         return ReminderResponse(
-            message="尊敬的Tom，您好！系统暂时无法查询技师时间，请稍后再试或直接联系我们预约。",
+            message="您好！系统暂时无法查询老师可授课时间，请稍后再试或直接联系课程顾问安排试听课或正式排课。",
             technician_available_times=[]
         )

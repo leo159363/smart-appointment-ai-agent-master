@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户行为分析 - 智能预约系统</title>
+    <title>学习需求分析 - 家教咨询与排课系统</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -271,28 +271,28 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2><i class="fas fa-chart-line"></i> 用户行为分析</h2>
-            <p>基于历史预约数据的智能分析</p>
+            <h2><i class="fas fa-chart-line"></i> 学习需求分析</h2>
+            <p>基于课程咨询和排课记录的智能分析</p>
         </div>
         
         <div class="content">
             <div class="analysis-card">
-                <h3 style="margin-bottom: 15px;"><i class="fas fa-search"></i> 用户行为分析</h3>
-                <p style="margin-bottom: 20px; opacity: 0.9;">基于历史预约数据的智能分析</p>
+                <h3 style="margin-bottom: 15px;"><i class="fas fa-search"></i> 学习需求分析</h3>
+                <p style="margin-bottom: 20px; opacity: 0.9;">基于历史课程咨询、试听预约和排课数据的智能分析</p>
                 <button onclick="loadUserAnalysis()" class="refresh-btn">
                     <i class="fas fa-sync-alt"></i> 手动刷新数据
                 </button>
                 <div id="debug-info" class="debug-info">调试：页面已加载</div>
             </div>
 
-            <!-- 用户分析数据 -->
+            <!-- 学习需求分析数据 -->
             <div class="stats-grid" id="analysisData">
                 <div class="stat-card">
-                    <div class="stat-title">最喜欢的技师</div>
+                    <div class="stat-title">偏好老师</div>
                     <div id="favoriteTechnician" class="stat-value primary">正在加载...</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">常用服务项目</div>
+                    <div class="stat-title">常选课程/学科</div>
                     <div id="favoriteService" class="stat-value success">正在加载...</div>
                 </div>
                 <div class="stat-card">
@@ -300,19 +300,19 @@
                     <div id="favoriteDuration" class="stat-value warning">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-title">距离上次预约</div>
+                    <div class="stat-title">距离上次排课</div>
                     <div id="daysSinceLastAppointment" class="stat-value info">-</div>
                 </div>
             </div>
             
-            <!-- 推送提醒功能 -->
+            <!-- 学习跟进提醒功能 -->
             <div class="reminder-section">
                 <div class="reminder-title">
-                    <i class="fas fa-bell"></i> 智能推送提醒
+                    <i class="fas fa-bell"></i> 智能学习跟进提醒
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div>
-                        <p style="color: #666; margin: 0;">基于用户偏好生成个性化回访消息</p>
+                        <p style="color: #666; margin: 0;">基于学生学习需求和课程偏好生成个性化回访消息</p>
                         <span id="reminderStatus" class="badge" style="background: #6c757d; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-top: 8px;">等待分析</span>
                     </div>
                     <button id="sendReminderBtn" class="send-reminder-btn" onclick="sendReminder()">
@@ -327,13 +327,13 @@
                     <div id="availableTimes"></div>
                 </div>
                 
-                <!-- 用户统计信息 -->
+                <!-- 学习需求统计信息 -->
                 <div style="margin-top: 30px; padding: 25px; background: rgba(255,255,255,0.8); border-radius: 15px; border: 1px solid rgba(255,255,255,0.3);">
-                    <h4 style="color: #333; margin-bottom: 20px;"><i class="fas fa-chart-bar"></i> 用户统计信息</h4>
+                    <h4 style="color: #333; margin-bottom: 20px;"><i class="fas fa-chart-bar"></i> 学习需求统计信息</h4>
                     <div class="stats-grid" style="margin: 0;">
                         <div style="text-align: center;">
                             <div id="totalAppointments" style="font-size: 28px; font-weight: bold; color: #4facfe; margin-bottom: 8px;">0</div>
-                            <div style="color: #666; font-size: 14px;">总预约次数</div>
+                            <div style="color: #666; font-size: 14px;">总预约/排课次数</div>
                         </div>
                         <div style="text-align: center;">
                             <div id="shouldSendReminder" style="font-size: 28px; font-weight: bold; color: #11998e; margin-bottom: 8px;">否</div>
@@ -341,7 +341,7 @@
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 28px; font-weight: bold; color: #667eea; margin-bottom: 8px;">default_user</div>
-                            <div style="color: #666; font-size: 14px;">当前分析用户</div>
+                            <div style="color: #666; font-size: 14px;">当前分析学生/家长</div>
                         </div>
                     </div>
                 </div>
@@ -350,7 +350,7 @@
     </div>
 
     <script>
-        // 页面加载时获取用户分析数据
+        // 页面加载时获取学习需求分析数据
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOMContentLoaded事件触发');
             document.getElementById('debug-info').textContent = '调试：DOMContentLoaded已触发，开始加载数据...';
@@ -359,7 +359,7 @@
 
         async function loadUserAnalysis() {
             try {
-                console.log('开始加载用户分析数据...');
+                console.log('开始加载学习需求分析数据...');
                 
                 // 使用与服务器一致的地址和端口
                 const apiUrl = 'http://127.0.0.1:8000/api/user-behavior/analysis';
@@ -381,7 +381,7 @@
                 
                 const data = await response.json();
                 console.log('API返回数据:', data);
-                document.getElementById('debug-info').textContent = `调试：API成功返回，共${data.total_appointments}次预约`;
+                document.getElementById('debug-info').textContent = `调试：API成功返回，共${data.total_appointments}次预约/排课`;
                 
                 const elements = {
                     'favoriteTechnician': data.favorite_technician_name || '无',
@@ -411,10 +411,10 @@
                 }
                 
                 console.log('页面更新完成');
-                document.getElementById('debug-info').textContent = `调试：页面更新完成，共${data.total_appointments}次预约`;
+                document.getElementById('debug-info').textContent = `调试：页面更新完成，共${data.total_appointments}次预约/排课`;
                 
             } catch (error) {
-                console.error('加载用户分析数据失败:', error);
+                console.error('加载学习需求分析数据失败:', error);
                 document.getElementById('debug-info').textContent = `调试：API调用失败 - ${error.message}`;
                 
                 // 显示错误信息
@@ -465,7 +465,7 @@
                 
                 if (data.technician_available_times && data.technician_available_times.length > 0) {
                     availableTimes.innerHTML = `
-                        <strong>建议预约时间：</strong><br>
+                        <strong>建议试听/排课时间：</strong><br>
                         ${data.technician_available_times.map(time => `<span style="background: #f093fb; color: white; padding: 4px 8px; border-radius: 8px; margin: 2px; display: inline-block;">${time}</span>`).join('')}
                     `;
                 } else {

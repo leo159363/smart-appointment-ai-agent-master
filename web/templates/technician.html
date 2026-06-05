@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>技师状态管理</title>
+    <title>老师状态管理</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -239,9 +239,9 @@
         <div class="header">
             <h2>
                 <i class="fas fa-users"></i>
-                技师状态管理
+                老师状态管理
             </h2>
-            <p>实时查看技师工作状态和个人信息</p>
+            <p>实时查看老师授课状态、性别和教学方向</p>
         </div>
         
         <div class="content">
@@ -249,17 +249,17 @@
                 <div class="stat-card">
                     <i class="fas fa-users"></i>
                     <div class="number">{{ technicians|length }}</div>
-                    <div class="label">总技师数</div>
+                    <div class="label">总老师数</div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-user-check"></i>
                     <div class="number">{{ technicians|selectattr('gender', 'equalto', '男')|list|length }}</div>
-                    <div class="label">男技师</div>
+                    <div class="label">男老师</div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-user-check"></i>
                     <div class="number">{{ technicians|selectattr('gender', 'equalto', '女')|list|length }}</div>
-                    <div class="label">女技师</div>
+                    <div class="label">女老师</div>
                 </div>
             </div>
             
@@ -267,10 +267,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th><i class="fas fa-id-badge"></i> 技师ID</th>
+                            <th><i class="fas fa-id-badge"></i> 老师ID</th>
                             <th><i class="fas fa-user"></i> 姓名</th>
                             <th><i class="fas fa-venus-mars"></i> 性别</th>
-                            <th><i class="fas fa-dumbbell"></i> 力气/倾向</th>
+                            <th><i class="fas fa-chalkboard-teacher"></i> 教学方向/风格</th>
                             <th><i class="fas fa-info-circle"></i> 状态</th>
                         </tr>
                     </thead>
@@ -293,7 +293,7 @@
                             <td>
                                 <span class="status-badge status-available">
                                     <i class="fas fa-check-circle"></i>
-                                    可预约
+                                    可授课
                                 </span>
                             </td>
                         </tr>
