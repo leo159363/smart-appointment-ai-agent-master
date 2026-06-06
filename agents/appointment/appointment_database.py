@@ -57,7 +57,7 @@ class AppointmentDatabase:
             return False
     
     def update_memory_schedule(self, technician_id: str, start_time: datetime, end_time: datetime):
-        """更新内存中的技师忙碌时间段"""
+        """更新内存中的老师忙碌时间段"""
         busy_period = {
             "start": time_config.format_datetime(start_time, "%H:%M"),
             "end": time_config.format_datetime(end_time, "%H:%M")

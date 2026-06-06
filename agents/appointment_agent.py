@@ -99,6 +99,7 @@ class AppointmentAgent:
         try:
             # 2. 解析AI返回的数据
             data = self.input_parser.parse_data(ai_content)
+            self._normalize_course_type(user_input, data)
             self.finished = self.appointment_processor.update_history_from_data(self.appointment_history, data)
             
             # 3. 处理与预约无关的请求
@@ -148,3 +149,14 @@ class AppointmentAgent:
         if self.state:
             from config.constants import StateEnum
             self.state.value = StateEnum.CLASSIFY
+
+    def _normalize_course_type(self, user_input: str, data: dict):
+        """保留用户明确表达的课程类型，避免泛化预约意图丢失"""
+        project = data.get("project")
+        if project and project != "未知":
+            return
+
+        if "正式课程" in user_input or "正式课" in user_input:
+            data["project"] = "正式课程"
+        elif "试听课" in user_input or "试听" in user_input:
+            data["project"] = "试听课"

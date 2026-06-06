@@ -1,390 +1,282 @@
 # AI 家教培训机构智能咨询与排课系统
 
-AI 家教培训机构智能咨询与排课系统是一个面向教培机构和一对一家教场景的智能咨询与预约排课项目。项目基于 FastAPI、LangChain、FAISS、SQLite 和多 Agent 协作架构，实现了任务分类、RAG 知识问答、老师智能匹配、试听课预约、正式课程排课、用户行为分析和个性化提醒等能力。
+## 1. 项目简介
 
-本项目的目标不是只做一个普通的课程预约表单，而是模拟家教培训机构日常运营中的高频流程：理解家长或学生是在咨询课程、询问价格、匹配老师、预约试听课，还是需要正式排课；结合学生年级、薄弱科目、学习目标、可上课时间和老师风格偏好，辅助完成咨询、匹配和排课。
+AI 家教培训机构智能咨询与排课系统是一个面向家教/教培机构的智能咨询与排课 MVP。项目基于 FastAPI、多 Agent 任务分发、RAG 课程知识库和 SQLite 演示数据，支持课程咨询、老师匹配、试听课预约、正式排课、学习需求分析和知识库管理。
 
-> 当前阶段只完成对外文案和默认数据迁移，内部包名、类名、路由路径和字段名仍可能保留原项目中的 `technician`、`appointment`、`service_type` 等命名。不要把这些内部命名理解为已经完成重构。
+这个项目的重点不是单点功能演示，而是完整展示一次“领域迁移 + 可运行 MVP + 测试基线 + 页面/API 验收”的工程过程。系统将课程咨询、老师匹配、排课流程、知识库问答和学习需求分析串成一个可启动、可演示、可复验的应用。
 
-## 项目背景
+项目基于原预约系统进行领域迁移和工程化改造，重点验证多 Agent + RAG + 排课咨询场景的可运行 MVP。为降低迁移风险，MVP 阶段保留部分历史内部字段命名，例如 `technician`、`appointment`、`service_type`，但对外页面、API 文档和演示数据已迁移为老师、课程、试听课和排课语义。
 
-我本人是学生，最近在教培机构做一对一家教兼职，对家教机构的真实业务更熟悉。家教培训机构在日常运营中需要处理大量重复但细节复杂的问题，例如：
+## 2. 核心功能
 
-- 家长咨询课程体系、收费规则、试听课安排和退费规则。
-- 学生说明数学基础薄弱、英语听说困难、作文不会写、物理概念不清等学习问题。
-- 课程顾问根据年级、科目、目标分数和可上课时间匹配合适老师。
-- 老师需要根据课表安排试听课、正式课、改约、请假、补课和阶段反馈。
-- 机构需要沉淀咨询记录、预约记录和学习需求，用于后续推荐和跟进。
+### 智能咨询助手
 
-因此，本项目将原始服务预约系统迁移为“AI 家教培训机构智能咨询与排课系统”，重点展示 AI Agent 在课程咨询、老师匹配、试听课预约和学习需求分析中的测试开发价值。
+- 识别用户是在咨询课程、询问收费、匹配老师、预约试听课，还是提出无关问题。
+- 回答课程体系、收费规则、老师介绍、试听课规则、排课规则和教学质量相关问题。
+- 在模型不可用或问题超出范围时提供清晰的家教场景 fallback 文案。
 
-## 核心能力
+### 多 Agent 任务分发
 
-- **智能任务分类**：自动识别用户是在课程咨询、试听课预约、正式排课、价格咨询、学习需求分析，还是提出无关问题，并将请求路由到对应 Agent。
-- **多 Agent 协作**：通过任务分类 Agent、课程咨询 Agent、试听课预约/排课 Agent 和学习需求分析 Agent 分工处理复杂流程。
-- **RAG 知识咨询**：使用 FAISS 向量索引检索课程体系、收费规则、老师介绍、试听课规则、退费规则和上课须知，再结合大模型生成自然语言回答。
-- **老师智能匹配**：根据学生年级、薄弱科目、学习目标、老师教学风格偏好和可上课时间推荐合适老师。
-- **试听课预约与正式排课**：围绕试听课预约、正式课程排课、改约、请假、补课和排课冲突处理进行流程编排。
-- **用户行为分析**：记录咨询、预约和偏好信息，分析学生学习需求、薄弱科目、时间偏好和老师风格偏好。
-- **个性化提醒**：在预约或排课完成后，结合课程时间、上课方式、课前准备和学习目标生成提醒。
-- **Embedding 缓存优化**：通过数据库缓存和文件缓存减少重复向量计算，提高知识检索性能。
-- **数据管理能力**：支持知识库、老师信息和用户行为数据的增删改查，并在数据变化后维护索引。
-- **日志与兜底机制**：保留关键处理过程日志，在信息不足、模型连接失败或异常情况下提供降级处理。
+- 任务分类 Agent：判断用户输入属于课程咨询、试听课预约、正式排课或无关问题。
+- 课程咨询 Agent：结合课程知识库回答机构课程、收费、老师和规则问题。
+- 预约/排课 Agent：围绕学生年级、学科、薄弱点、学习目标、上课时间和老师偏好推进预约流程。
+- 学习需求分析 Agent：分析学生/家长偏好，并生成学习跟进提醒。
 
-## 典型业务场景
+### RAG 课程知识库
 
-- 家长咨询：“初中数学一对一怎么安排？怎么收费？”
-- 学生咨询：“我英语听说比较弱，想找互动多一点的老师。”
-- 试听预约：“想预约周六下午的初中物理试听课。”
-- 老师匹配：“孩子基础薄弱，希望老师耐心细致一点。”
-- 正式排课：“试听后想每周三晚上和周日下午固定上课。”
-- 改约请假：“这周课程想请假，能不能补到下周？”
-- 学习需求分析：“孩子考前两个月想短期提分，应该怎么排课？”
+- 课程体系：小学、初中、高中一对一课程和专项辅导。
+- 收费规则：试听课、课时包、课程包和退费说明。
+- 老师介绍：教学方向、适合年级、授课风格和匹配依据。
+- 试听/排课规则：试听预约、正式排课、改约、请假和补课。
+- 教学质量说明：课堂反馈、阶段测评、错题复盘和家长回访。
 
-## 老师和学生画像
+### 老师管理与状态查看
 
-老师样例风格包括：
+- 查看老师列表。
+- 查看授课方向和适合学生类型。
+- 展示教学风格和可授课状态。
+- 页面路径保留兼容路由，但对外展示为老师状态和老师课表。
 
-- 耐心细致型
-- 应试提分型
-- 互动鼓励型
-- 严格督促型
-- 擅长基础补弱型
-- 擅长拔高竞赛型
+### 试听课预约与正式排课
 
-学生需求样例包括：
+- 提取学生年级、学科、薄弱点和学习目标。
+- 收集可上课时间、上课方式和老师风格偏好。
+- 支持试听课预约和正式排课语义。
+- 对排课信息缺失、老师时间冲突等情况进行追问或提示。
 
-- 数学基础薄弱
-- 英语听说困难
-- 作文不会写
-- 物理概念不清
-- 考前短期提分
-- 需要老师督促学习习惯
+### 学习需求分析
 
-## 系统架构
+- 分析学生/家长偏好。
+- 生成学习跟进提醒。
+- 支持回访消息生成，用于课程顾问后续沟通。
 
-项目采用五层架构，核心原则是：下层不反向调用上层。这样可以避免循环依赖，让业务逻辑、数据访问和接口编排保持清晰边界。
+### 演示数据重置
 
-```text
-Web & Application Layer
-    ↓  app.py, web/：页面、路由入口、系统启动
-API Layer
-    ↓  api/：外部接口、请求编排、响应封装
-Agents Layer
-    ↓  agents/：AI Agent、任务路由、对话流程控制
-Services Layer
-    ↓  services/：业务逻辑、推荐算法、向量处理
-DB Layer
-    ↓  db/：数据模型、数据库连接、Repository
-```
+- 提供 `scripts/reset_demo_data.py`。
+- 可备份并重置本地 SQLite 演示数据。
+- 写入家教培训场景课程知识库和老师样例。
+- 不修改数据库 schema。
 
-### 允许的调用方向
+### 测试与验收基线
 
-- Web 层调用 API 层
-- API 层调用 Agents 层或 Services 层
-- Agents 层调用 Services 层
-- Services 层调用 DB 层
+- `import app` smoke test。
+- `pytest --collect-only` 测试收集。
+- `task_classification` 单测回归。
+- 页面/API 手工验收。
+- 旧场景关键词扫描。
+- A/B/C/D/E 风险分类记录。
 
-### 禁止的调用方式
+## 3. 技术栈
 
-- 下层反向调用上层
-- Web 层绕过 API 直接访问 Services 或 DB
-- Agents 层绕过 Services 直接访问 DB
-- Services 层调用 Agents、API 或 Web
+| 层面 | 技术 |
+| --- | --- |
+| Backend | FastAPI、Uvicorn |
+| Agent | 多 Agent 任务分发、Prompt 构造、Fallback 处理 |
+| RAG | LangChain、FAISS、Embedding、课程知识库 |
+| Database | SQLite、SQLAlchemy |
+| Frontend | Jinja2 Templates、HTML/CSS/JavaScript |
+| Testing | pytest、pytest-asyncio |
+| Script | `scripts/reset_demo_data.py` |
 
-## Agent 设计
-
-### Task Classification Agent
-
-任务分类 Agent 是系统的主调度器，负责分析用户输入、判断任务类型，并把请求分发给合适的专业 Agent。
+## 4. 系统架构
 
 ```text
-用户输入 → 意图分析 → Agent 路由 → 响应协调
+Web 前端页面
+  ↓
+FastAPI Web Routes
+  ↓
+API 接口层
+  ↓
+Agent 层
+  ↓
+Service 层
+  ↓
+SQLite / FAISS / Knowledge Base
 ```
 
-主要职责：
+各层职责：
 
-- 判断课程咨询、试听预约、正式排课、学习需求分析和无关问题。
-- 维护对话状态。
-- 控制不同 Agent 之间的切换。
-- 处理无法分类或超出能力范围的问题。
+- `web/templates/`：前端页面展示，包括首页、知识库、老师状态、老师课表和学习需求分析。
+- `web/routes.py`：页面路由和模板渲染。
+- `api/`：REST API 接口，封装课程咨询、任务分类、预约、老师、知识库和学习需求分析能力。
+- `agents/`：任务分类、课程咨询、预约/排课和学习需求分析的 Agent 流程。
+- `services/`：知识库、老师、预约、用户行为、推荐和 Embedding 等业务服务。
+- `db/`：SQLite 数据模型、Session 管理和 Repository 数据访问。
+- `scripts/`：本地演示数据重置脚本。
+- `tests/`：自动化测试基线。
 
-### Consultation Agent
-
-咨询 Agent 负责课程问答场景，使用 RAG 流程从知识库中检索相关内容，再结合大模型生成回答。
-
-```text
-任务分类 → 知识检索 → FAISS 相似度搜索 → 流式回答
-```
-
-主要职责：
-
-- 回答课程体系、收费规则、老师介绍、试听课规则、退费规则和上课须知。
-- 从知识库检索相关内容。
-- 构建提示词。
-- 生成自然语言回答。
-
-### Appointment Agent
-
-预约 Agent 负责试听课预约和正式排课相关流程，包括解析用户输入、匹配老师、检查预约信息、生成确认消息等。
-
-```text
-任务分类 → 解析学习与排课需求 → 老师匹配 → 试听课/正式排课确认
-```
-
-主要职责：
-
-- 提取学生年级、学科、薄弱点、学习目标、上课时间和老师偏好。
-- 匹配合适老师。
-- 处理信息缺失时的追问。
-- 生成试听课预约或正式排课结果和提醒。
-
-### User Behavior Agent
-
-用户行为 Agent 更偏向后台智能分析。它会根据咨询记录、预约历史和偏好数据分析学生学习需求，为后续推荐提供依据。
-
-```text
-行为记录 → 学习需求分析 → 偏好更新 → 个性化推荐
-```
-
-主要职责：
-
-- 记录咨询、预约和学习需求行为。
-- 分析薄弱科目、目标分数、时间偏好和老师风格偏好。
-- 生成推荐依据。
-- 支持主动反馈和个性化服务。
-
-## 核心设计思想
-
-### 1. 用任务分类降低系统复杂度
-
-系统不让一个 Agent 处理所有事情，而是先判断用户意图，再分发给对应模块。这样可以让课程咨询、试听预约、正式排课和学习需求分析逻辑保持独立。
-
-### 2. 用 RAG 解决机构知识回答
-
-课程体系、收费规则、老师介绍、试听课规则、退费规则和上课须知适合通过知识库维护。RAG 能让回答基于可控知识来源，而不是完全依赖大模型自由生成。
-
-### 3. 用用户行为让推荐更个性化
-
-系统会记录学生年级、薄弱科目、学习目标、可上课时间和老师偏好。后续在推荐老师或排课方案时，可以结合历史行为，而不是每次都从零开始询问。
-
-### 4. 用分层架构保证可维护性
-
-Agent 负责智能流程，Service 负责业务逻辑，Repository 负责数据访问。每层只关心自己的职责，减少后期修改时的连锁影响。
-
-### 5. 为真实教培场景预留扩展空间
-
-项目目前以本地 SQLite 和单体服务为主，但架构上预留了模型提供商切换、MCP 外部服务接入、后台任务、缓存优化和云端部署的扩展方向。
-
-## 架构图
-
-![System Architecture](./architecture%20.jpg)
-
-## 技术栈
-
-- **后端框架**：FastAPI、Uvicorn
-- **AI 框架**：LangChain
-- **大模型接入**：兼容 OpenAI 格式的模型提供商，例如 Qwen、DeepSeek、Zhipu、OpenAI、Azure OpenAI
-- **向量检索**：FAISS
-- **数据库**：SQLite、SQLAlchemy
-- **RAG 能力**：Embedding、向量索引、知识库检索、提示词构建
-- **流式响应**：Python AsyncGenerator
-- **前端页面**：Jinja2 模板、静态 CSS
-- **外部服务扩展**：MCP，用于天气等外部信息接入
-- **配置管理**：python-dotenv
-- **后台任务**：schedule
-
-## 项目结构
-
-```text
-smart-appointment-ai-agent-master/
-├── agents/                         # 多 Agent 智能层
-│   ├── task_classification_agent.py # 任务分类与主路由
-│   ├── consultant_agent.py          # RAG 课程咨询 Agent
-│   ├── appointment_agent.py         # 试听预约/排课 Agent
-│   ├── user_behavior_agent.py       # 学习需求分析 Agent
-│   ├── task_classification/         # 意图识别、状态管理、路由逻辑
-│   ├── consultant/                  # 知识检索、提示词、回答生成
-│   ├── appointment/                 # 预约解析、老师匹配、消息构建
-│   └── user_behavior/               # 行为记录、偏好管理、模式分析
-├── api/                             # API 编排层
-│   ├── appointment.py               # 预约/排课接口
-│   ├── consultation.py              # 咨询接口
-│   ├── task.py                      # 任务分类接口
-│   ├── chat_handler.py              # 流式聊天处理
-│   ├── technician.py                # 老师管理接口，内部路径仍保留 technician 命名
-│   ├── knowledge.py                 # 知识库管理接口
-│   └── user_behavior_analysis.py    # 学习需求分析接口
-├── services/                        # 业务逻辑层
-│   ├── appointment_service.py       # 预约/排课业务逻辑
-│   ├── knowledge_service.py         # 知识库管理
-│   ├── recommendation_service.py    # 推荐逻辑
-│   ├── technician_service.py        # 老师信息管理，内部类名仍保留 TechnicianService
-│   ├── text_embedding.py            # Embedding 与向量处理
-│   └── user_behavior_service.py     # 用户行为/学习需求服务
-├── db/                              # 数据持久化层
-│   ├── models.py                    # SQLAlchemy 模型
-│   ├── db_router.py                 # 数据库路由
-│   ├── local_db.py                  # 本地数据库操作
-│   ├── base/                        # 数据库基础接口
-│   └── repositories/                # Repository 数据访问封装
-├── config/                          # 配置模块
-│   ├── constants.py                 # 常量与枚举
-│   ├── database.py                  # 数据库配置
-│   ├── model_provider.py            # 模型与 Embedding Provider 工厂
-│   ├── settings.py                  # 应用配置
-│   └── time_config.py               # 时间与排班配置
-├── web/                             # Web 页面层
-│   ├── routes.py                    # 页面路由
-│   ├── templates/                   # HTML 模板
-│   └── static/                      # 静态资源
-├── mcp-server/                      # MCP 外部服务扩展
-├── data/                            # 数据库与缓存目录
-├── docs/                            # 迁移审计和基线报告
-├── tests/                           # 测试用例
-├── app.py                           # 应用入口
-├── requirements.txt                 # Python 依赖
-├── .env.example                     # 环境变量模板
-└── README.md                        # 项目说明
-```
-
-## 快速开始
+## 5. 快速启动
 
 ### 1. 创建虚拟环境
 
-```bash
-python -m venv .venv
-```
-
-Windows PowerShell：
-
 ```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Windows CMD：
-
-```cmd
-.venv\Scripts\activate.bat
-```
-
-macOS 或 Linux：
-
-```bash
-source .venv/bin/activate
+python -m venv .venv
 ```
 
 ### 2. 安装依赖
 
-```bash
-pip install -r requirements.txt
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 ### 3. 配置环境变量
 
-复制环境变量模板：
-
-```bash
-cp .env.example .env
-```
-
-Windows PowerShell 可以使用：
+复制 `.env.example` 为 `.env`，并配置 OpenAI-compatible 的聊天模型和 Embedding 服务。不要把真实 API Key 提交到 Git。
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-然后在 `.env` 中填写模型和数据库配置。项目支持 OpenAI 兼容格式的大模型与 Embedding 服务。
+需要配置的方向包括：
 
-```env
-MODEL_PROVIDER=qwen
-LLM_API_KEY=your_llm_api_key_here
-LLM_BASE_URL=your_openai_compatible_chat_base_url_here
-LLM_MODEL=your_chat_model_name_here
+- 聊天模型 API Key、Base URL、Model Name。
+- Embedding 模型 API Key、Base URL、Model Name。
+- SQLite 数据库连接地址，默认使用本地 `data/smart_appointment.db`。
 
-EMBEDDING_PROVIDER=qwen
-EMBEDDING_API_KEY=your_embedding_api_key_here
-EMBEDDING_BASE_URL=your_openai_compatible_embedding_base_url_here
-EMBEDDING_MODEL=your_embedding_model_name_here
+### 4. 重置演示数据
 
-DATABASE_URL=sqlite:///./data/smart_appointment.db
-
-DEBUG=True
-LOG_LEVEL=INFO
+```powershell
+.\.venv\Scripts\python.exe scripts/reset_demo_data.py
 ```
 
-常见配置方向：
+脚本会备份当前 SQLite 文件，清理本地演示数据，并写入家教培训机构场景的课程知识库和老师样例。
 
-- Qwen：使用阿里云百炼或 DashScope 的模型、Base URL 和 API Key。
-- DeepSeek：可用于聊天模型，Embedding 可搭配其他兼容服务。
-- Zhipu：可配置智谱的聊天模型和向量模型。
-- Azure OpenAI：将 `MODEL_PROVIDER` 设置为 `azure`，并补充对应的 Azure OpenAI 环境变量。
+### 5. 启动服务
 
-### 4. 启动服务
-
-```bash
-python -m uvicorn app:app --host 127.0.0.1 --port 8000 --reload
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-如果 8000 端口已被占用，可以换成 8001：
+如果 8000 端口被占用，可以换成其他端口，例如：
 
-```bash
-python -m uvicorn app:app --host 127.0.0.1 --port 8001 --reload
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8001
 ```
 
-启动后可以访问：
+### 6. 访问页面
 
-- Web 页面：http://127.0.0.1:8000
-- API 文档：http://127.0.0.1:8000/docs
-- ReDoc 文档：http://127.0.0.1:8000/redoc
+启动后访问：
 
-## 测试
+- 首页：http://127.0.0.1:8000/
+- Swagger API 文档：http://127.0.0.1:8000/docs
 
-运行全部测试：
+## 6. 页面入口
 
-```bash
-pytest
+| 页面 | 地址 | 说明 |
+| --- | --- | --- |
+| 首页 | http://127.0.0.1:8000/ | 智能咨询与排课入口 |
+| Swagger API 文档 | http://127.0.0.1:8000/docs | FastAPI 自动文档 |
+| 知识库管理 | http://127.0.0.1:8000/knowledge | 课程知识库管理和搜索 |
+| 老师状态 | http://127.0.0.1:8000/technician | 老师列表、授课方向和状态 |
+| 老师课表 | http://127.0.0.1:8000/technician_schedule | 老师可授课时间和课表展示 |
+| 学习需求分析 | http://127.0.0.1:8000/user_behavior_analysis | 学生偏好和学习跟进提醒 |
+
+说明：部分 URL 保留 `technician` 等兼容路由命名，但页面展示和 API 文档语义为老师、课程、试听课和排课。
+
+## 7. API 能力
+
+| API 路径 | 能力 |
+| --- | --- |
+| `/api/knowledge` | 课程知识库查询、搜索、增删改 |
+| `/api/technicians` | 老师数据和老师课表查询 |
+| `/api/appointment` | 试听课预约与正式排课 |
+| `/api/consultation` | 课程咨询问答 |
+| `/api/user-behavior` | 学习需求分析和学习跟进提醒 |
+| `/api/task` | 课程咨询与排课任务分类 |
+
+详细请求参数和响应结构可在启动后通过 `/docs` 查看。
+
+## 8. 演示数据重置
+
+`scripts/reset_demo_data.py` 用于本地演示前重建家教培训机构场景数据。
+
+脚本会执行：
+
+- 备份当前 SQLite 数据库。
+- 清理旧演示数据。
+- 写入课程知识库示例。
+- 写入老师演示数据。
+- 保持数据库 schema 不变。
+
+当前 `data/smart_appointment.db` 不强制提交到 Git。推荐通过 seed 代码和 `scripts/reset_demo_data.py` 重建演示数据，避免提交本地数据库和备份文件。
+
+## 9. 测试与验收
+
+当前测试基线：
+
+- `import app` 可通过。
+- `pytest --collect-only` 可收集 30 个测试。
+- `tests/test_task_classification_agent.py` 当前存在 1 个已知失败，主要受 LLM/OpenAI-compatible 连接失败影响。
+- 页面、API、SQLite 演示数据旧场景关键词扫描已通过。
+- 当前质量策略是：先建立基线、分阶段迁移、分类记录失败，不为全绿而盲目修改核心逻辑。
+
+验证命令：
+
+```powershell
+.\.venv\Scripts\python.exe -c "import app; print('app import ok')"
 ```
 
-运行单个测试文件：
-
-```bash
-pytest tests/test_task_classification_agent.py
+```powershell
+.\.venv\Scripts\python.exe -m pytest --collect-only
 ```
 
-当前测试基线请查看 `docs/BASELINE_REPORT.md`。本项目的部分测试会真实调用 LLM/OpenAI-compatible 接口，未配置可访问的模型服务时可能出现连接失败。
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_task_classification_agent.py -q
+```
 
-## 主要页面
+当前已知测试结果示例：
 
-当前阶段尚未修改前端模板文件，因此部分页面文件名或内部命名仍沿用原项目结构：
+```text
+pytest --collect-only: collected 30 items
+test_task_classification_agent.py: 1 failed, 7 passed
+```
 
-- 首页聊天与预约入口：`web/templates/index.html`
-- 知识库管理：`web/templates/knowledge_management.html`
-- 老师管理页面：`web/templates/technician.html`
-- 老师可授课时间/排班页面：`web/templates/technician_schedule.html`
-- 学习需求分析页面：`web/templates/user_behavior_analysis.html`
+## 10. 项目迁移与质量控制
 
-## 后续规划
+这个项目的工程重点之一是迁移过程本身的质量控制。
 
-### 更强的 Agent 自主能力
+迁移过程包括：
 
-- 增加 Agent 自我反思机制，让系统能够评估课程咨询质量和排课成功率。
-- 引入更完整的多轮推理链，提升复杂排课和冲突处理能力。
-- 根据真实学生和家长反馈优化老师推荐策略。
+1. 建立领域迁移映射文档。
+2. 制定迁移计划和风险分级。
+3. 建立测试基线和失败分类。
+4. 分阶段迁移 README、默认数据、Agent prompt、前端页面、API 文档和演示数据库。
+5. 手工验收页面、API 和 SQLite 演示数据。
+6. 扫描旧场景关键词，确认对外展示没有残留。
+7. 将问题分为 A/B/C/D/E 类，避免把外部依赖失败、测试不一致和真实数据问题混在一起。
+8. 使用 `reset_demo_data.py` 保证演示数据可重建。
 
-### 更完整的多 Agent 协作
+风险分类：
 
-- 增加 Agent-to-Agent 通信机制，减少所有任务都依赖主分类器转发的问题。
-- 将学习需求分析 Agent 的后台分析能力做得更稳定，支持定时任务和主动触达。
-- 把预约、推荐、咨询之间的上下文记忆打通得更自然。
+| 分类 | 含义 |
+| --- | --- |
+| A 类 | LLM/OpenAI-compatible 等外部依赖失败 |
+| B 类 | 测试与当前实现不一致 |
+| C 类 | SQLite 或数据处理问题 |
+| D 类 | 页面/API/演示数据旧场景文案残留 |
+| E 类 | 真实功能阻塞问题 |
 
-### 生产化能力
+这个过程能体现测试开发中的基线意识、回归验证、风险隔离和提交前验收能力。
 
-- 增加学生、家长、老师和课程顾问的权限控制和数据隔离。
-- 增加更完整的异常处理和边界场景覆盖。
-- 优化向量检索性能、缓存策略和响应速度。
-- 支持 Docker 部署、云数据库和更标准的日志监控。
+## 11. 已知问题
 
-## 项目价值
+当前 MVP 的边界如下：
 
-这个项目把多 Agent、RAG、用户行为分析、预约调度和外部工具接入放在一个更贴近家教培训机构的真实业务场景中验证。它可以作为 AI Agent 工程化、分层架构、RAG 系统、自动化测试和业务自动化的综合实践项目。
+1. LLM/OpenAI-compatible 连接失败会影响部分 Agent 单测。后续建议引入 fake/mock LLM provider，提高自动化测试稳定性。
+2. MVP 阶段保留 `technician`、`appointment`、`service_type` 等内部兼容字段，避免大范围重构数据库、Repository 和 API 路由。
+3. SQLite 演示数据通过 `scripts/reset_demo_data.py` 重建，不建议直接提交本地数据库和备份文件。
+4. 全量 pytest 中仍有历史基线失败，后续应按 A/B/C 风险分类逐步修复。
+
+这些问题不影响当前家教培训机构 MVP 的页面展示、API 演示和领域迁移说明。
+
+## 12. 后续优化方向
+
+- 引入 fake/mock LLM provider，提高 Agent 测试稳定性。
+- 补充 API 自动化测试。
+- 增加 Playwright 页面自动化验收。
+- 增加 RAG 检索效果评估。
+- 重构内部兼容字段命名。
+- 完善 CI 流水线。
+- 增加 Docker 部署。
+- 增加学生、家长、老师、课程顾问等多角色权限管理。

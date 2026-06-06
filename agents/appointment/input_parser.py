@@ -44,7 +44,7 @@ class InputParser:
                 '  "preference": "学习需求和老师偏好（如数学基础薄弱/考前提分/耐心细致型老师/严格督促型老师/线上课/线下校区/上门/无）",\n'
                 '  "technician_name": "指定老师姓名（如果用户明确提到老师名字，如张明远老师、李安琪等，否则为未知）",\n'
                 '  "confirmation": "如果用户在回应老师推荐或排课方案的确认问题，提取用户的回复内容（如是/好/可以/不/不要等），否则为未知",\n'
-                '  "info_complete": "根据实际情况判断：1)如果指定了老师名且不为未知，需要start_time、project、duration都不为未知；2)如果没指定老师名，需要start_time、project、duration、gender都不为未知",\n'
+                '  "info_complete": "根据实际情况判断：需要start_time、project、duration都不为未知；gender是老师性别偏好，如果用户没有要求可以为不限或未知，不影响排课完整性",\n'
                 '  "unrelated": "如果用户的问题和试听课预约、正式排课、老师匹配无关（如问天气、聊天等），则为true，否则为false。注意：对推荐老师或排课方案的确认回复（是/不等）不应标记为unrelated",\n'
                 '  "missing_info": "如果info_complete为false，请列出缺少的关键信息，如[start_time, project]等"\n'
                 "}}\n"
@@ -52,8 +52,8 @@ class InputParser:
                 "1. 如果用户明确指定了老师姓名（如\"张明远老师\"、\"预约李安琪\"等），请务必提取technician_name\n"
                 "2. 如果用户在回应推荐老师或排课方案的确认问题（如回复\"是\"、\"好\"、\"可以\"、\"不\"、\"不要\"等），请提取到confirmation字段，并且不要将其标记为unrelated\n"
                 "3. 必需信息判断：\n"
-                "   - 如果指定了老师名：需要start_time、project、duration\n"
-                "   - 如果没指定老师名：需要start_time、project、duration、gender\n"
+                "   - 需要start_time、project、duration\n"
+                "   - gender只是老师性别偏好，不是必填项；如果用户未说明，可保持未知或不限\n"
                 "   - 学生年级、薄弱点、学习目标、老师风格偏好、线上/线下/上门偏好请尽量放入preference字段\n"
                 "3. 只有当所有必需信息都不是'未知'时，info_complete才为true\n"
                 "4. 如果用户的问题和预约无关，请将unrelated设为true\n"

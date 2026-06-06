@@ -340,7 +340,7 @@
                             <div style="color: #666; font-size: 14px;">建议发送提醒</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: bold; color: #667eea; margin-bottom: 8px;">default_user</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #667eea; margin-bottom: 8px;">演示学生/家长</div>
                             <div style="color: #666; font-size: 14px;">当前分析学生/家长</div>
                         </div>
                     </div>
@@ -463,13 +463,14 @@
                 
                 messageContent.textContent = data.message || '提醒消息生成成功！';
                 
-                if (data.technician_available_times && data.technician_available_times.length > 0) {
+                const formattedTimes = formatAvailableTimes(data.technician_available_times);
+                if (formattedTimes.length > 0) {
                     availableTimes.innerHTML = `
                         <strong>建议试听/排课时间：</strong><br>
-                        ${data.technician_available_times.map(time => `<span style="background: #f093fb; color: white; padding: 4px 8px; border-radius: 8px; margin: 2px; display: inline-block;">${time}</span>`).join('')}
+                        ${formattedTimes.map(time => `<span style="background: #f093fb; color: white; padding: 4px 8px; border-radius: 8px; margin: 2px; display: inline-block;">${time}</span>`).join('')}
                     `;
                 } else {
-                    availableTimes.innerHTML = '';
+                    availableTimes.innerHTML = '<strong>建议试听/排课时间：</strong><br><span style="color: #666;">暂无明确建议时间，请先补充可上课日期和时间段。</span>';
                 }
                 
                 messageDiv.style.display = 'block';
@@ -491,6 +492,51 @@
                 button.disabled = false;
                 button.classList.remove('loading');
             }
+        }
+
+        function formatAvailableTimes(times) {
+            if (!Array.isArray(times)) {
+                return [];
+            }
+
+            return times.map(formatAvailableTime).filter(Boolean);
+        }
+
+        function formatAvailableTime(time) {
+            if (!time) {
+                return '';
+            }
+
+            if (typeof time === 'string') {
+                return time;
+            }
+
+            if (typeof time === 'object') {
+                const formatted = time.formatted || '';
+                const date = time.date || '';
+                const start = time.time || time.start || time.start_time || '';
+                const end = time.end || time.end_time || '';
+                const duration = time.duration ? `${time.duration}分钟` : '';
+                const teacher = time.teacher || time.teacher_name || time.technician_name || '';
+
+                if (formatted && duration && teacher) {
+                    return `${formatted}，${duration}，${teacher}老师`;
+                }
+                if (formatted && duration) {
+                    return `${formatted}，${duration}`;
+                }
+                if (formatted) {
+                    return formatted;
+                }
+                if (date && start && end) {
+                    return `${date} ${start}-${end}${duration ? `，${duration}` : ''}${teacher ? `，${teacher}老师` : ''}`;
+                }
+                if (date && start) {
+                    return `${date} ${start}${duration ? `，${duration}` : ''}${teacher ? `，${teacher}老师` : ''}`;
+                }
+            }
+
+            return '';
         }
     </script>
 </body>

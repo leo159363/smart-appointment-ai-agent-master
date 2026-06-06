@@ -57,7 +57,7 @@ class AgentRouter:
         self.state_manager.transition_to_appointment()
         
         # 生成思考提示
-        yield "[THOUGHT][归类机器人] 归类机器人：我发现这是一个预约任务，我将转给预约机器人处理。"
+        yield "[THOUGHT][归类机器人] 归类机器人：我发现这是一个预约任务，我将转给排课助手处理。"
         
         # 调用预约Agent
         try:

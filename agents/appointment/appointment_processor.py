@@ -32,7 +32,7 @@ class WeatherMCPTool(BaseTool):
     async def _get_weather_data(self, city: str = "Beijing") -> str:
         """异步获取天气数据"""
         if not self._api_key:
-            return "北京今天天气晴朗，温度适宜，建议您注意防晒"
+            return "北京今天天气较适合按计划参加课程沟通或试听课；如需到校区上课，请提前规划出行时间并准备学习资料。"
         
         try:
             params = {
@@ -56,9 +56,9 @@ class WeatherMCPTool(BaseTool):
                         
                         return f"北京当前天气：{description}，气温{temp}°C（体感{feels_like}°C），湿度{humidity}%，风速{wind_speed}m/s"
                     else:
-                        return "北京今天天气晴朗，温度适宜，建议您出行注意防晒"
+                        return "北京今天天气较适合按计划参加课程沟通或试听课；如需到校区上课，请提前规划出行时间并准备学习资料。"
         except Exception as e:
-            return f"北京今天天气宜人，温度适中，适合出行"
+            return "北京今天天气整体适合按计划上课；如选择线上课，请提前检查网络、摄像头和麦克风。"
     
     def _run(self, city: str = "Beijing") -> str:
         """同步版本 - 不推荐使用"""
@@ -87,7 +87,7 @@ class AppointmentProcessor:
             
             # 创建 agent prompt
             self.agent_prompt = ChatPromptTemplate.from_messages([
-                ("system", "你是一个智能助手，可以获取天气信息并生成个性化的预约成功提示。"),
+                ("system", "你是家教培训机构排课助手，可以获取天气信息并生成试听课或课程排课成功提示。提醒必须围绕到校区上课、线上课准备、学习资料准备和出行安排，不要出现原生活服务预约场景的称呼、放松护理或户外护肤语义。"),
                 ("human", "{input}"),
                 ("placeholder", "{agent_scratchpad}"),
             ])
@@ -98,7 +98,7 @@ class AppointmentProcessor:
     
     def update_history_from_data(self, appointment_history: Dict[str, Any], data: Dict[str, Any]) -> bool:
         """从解析数据更新预约历史"""
-        # 检查是否在等待用户确认推荐技师
+        # 检查是否在等待用户确认推荐老师
         if appointment_history.get('awaiting_confirmation'):
             return self._handle_recommendation_response(appointment_history, data)
         
@@ -112,30 +112,25 @@ class AppointmentProcessor:
             appointment_history["preference"] = data["preference"]
         
         # 检查是否收集齐所有必需信息
-        # 必需信息：时间、项目、时长
-        # 如果指定了技师名，则不需要性别；否则性别也是必需的
+        # 必需信息：具体上课时间、明确课程/学科、课时时长；老师性别偏好不是必填项
         required_fields = ["start_time", "project", "duration"]
         technician_name = appointment_history.get("technician_name")
         
-        if not technician_name or technician_name == "未知":
-            # 没有指定技师，需要性别来筛选
-            required_fields.append("gender")
-        
         has_all_required = all(
-            appointment_history.get(field) and appointment_history[field] != "未知" 
+            self._has_valid_field(appointment_history, field)
             for field in required_fields
         )
         
-        # 如果信息完整，但是指定的技师不可用且需要推荐，则不认为预约"完成"
+        # 如果信息完整，但是指定的老师不可授课且需要推荐，则不认为预约"完成"
         if has_all_required and technician_name and technician_name != "未知":
-            # 检查指定技师是否可用，如果不可用则进入推荐流程
+            # 检查指定老师是否可授课，如果不可授课则进入推荐流程
             # 这个检查留到 handle_complete_appointment 中进行
             pass
         
         return has_all_required
 
     def _handle_recommendation_response(self, appointment_history: Dict[str, Any], data: Dict[str, Any]) -> bool:
-        """处理用户对推荐技师的回应"""
+        """处理用户对推荐老师的回应"""
         user_response = data.get('confirmation', '').lower()
         
         # 判断用户是否同意推荐
@@ -146,7 +141,7 @@ class AppointmentProcessor:
         is_negative = any(neg in user_response for neg in negative_responses)
         
         if is_positive and not is_negative:
-            # 用户同意推荐，更新技师信息
+            # 用户同意推荐，更新老师信息
             recommended_tech = appointment_history.get('recommended_technician')
             if recommended_tech:
                 appointment_history['confirmed_technician'] = recommended_tech
@@ -169,7 +164,7 @@ class AppointmentProcessor:
         
         if unrelated_callback:
             try:
-                yield "[REPLY][预约机器人]和预约信息无关，已交给归类机器人处理\n"
+                yield "[REPLY][排课助手]和课程预约信息无关，已交给归类机器人处理\n"
                 result = await unrelated_callback(user_input)
                 if hasattr(result, '__aiter__'):
                     async for token in result:
@@ -188,31 +183,31 @@ class AppointmentProcessor:
         # 检查是否用户拒绝了推荐
         if appointment_history.get('recommendation_declined'):
             reply = self.message_builder.create_recommendation_declined_message(self.llm)
-            yield f"[REPLY][预约机器人]{reply}"
+            yield f"[REPLY][排课助手]{reply}"
             # 清理状态
             appointment_history.pop('recommendation_declined', None)
             appointment_history.pop('recommended_technician', None)
             appointment_history.pop('original_technician', None)
             return
         
-        # 检查是否用户确认了推荐技师
+        # 检查是否用户确认了推荐老师
         if appointment_history.get('confirmed_technician'):
             tech = appointment_history['confirmed_technician']
-            # 标记为推荐技师用于成功消息显示
+            # 标记为推荐老师用于成功消息显示
             tech['is_recommendation'] = True
             tech['original_technician'] = appointment_history.get('original_technician')
             reply = await self._process_successful_appointment(tech, appointment_history, session_id)
-            yield f"[REPLY][预约机器人]{reply}"
+            yield f"[REPLY][排课助手]{reply}"
             # 清理状态
             appointment_history.pop('confirmed_technician', None)
             appointment_history.pop('recommended_technician', None)
             appointment_history.pop('original_technician', None)
             return
         
-        # 检查是否在等待用户确认推荐技师
+        # 检查是否在等待用户确认推荐老师
         if appointment_history.get('awaiting_confirmation'):
             # 用户回应不明确，重新询问
-            yield f"[REPLY][预约机器人]\n机器人：请您明确回复\"是\"或\"不\"，我好为您安排预约。\n"
+            yield f"[REPLY][排课助手]\n排课助手：请您明确回复\"是\"或\"不\"，我好为您安排课程预约。\n"
             return
         
         # 收集思考过程
@@ -238,7 +233,7 @@ class AppointmentProcessor:
                 recommendation_msg = self.message_builder.create_technician_recommendation_message(
                     original_tech, recommended_tech, appointment_history, self.llm
                 )
-                yield f"[REPLY][预约机器人]{recommendation_msg}"
+                yield f"[REPLY][排课助手]{recommendation_msg}"
                 
                 # 将推荐信息存储在预约历史中，等待用户确认
                 appointment_history['recommended_technician'] = recommended_tech
@@ -251,14 +246,14 @@ class AppointmentProcessor:
             else:
                 # 正常预约流程
                 reply = await self._process_successful_appointment(tech, appointment_history, session_id)
-                yield f"[REPLY][预约机器人]{reply}"
+                yield f"[REPLY][排课助手]{reply}"
         else:
             reply = self.message_builder.create_appointment_failure_message(technician_name)
-            yield f"[REPLY][预约机器人]{reply}"
+            yield f"[REPLY][排课助手]{reply}"
     
     async def _process_successful_appointment(self, tech: Dict[str, Any], 
                                            appointment_history: Dict[str, Any], session_id: str) -> str:
-        """处理预约成功的情况，并结合北京天气生成温馨提示"""
+        """处理预约成功的情况，并结合北京天气生成课程准备提示"""
         start_time, end_time, duration_min = self.technician_finder.parse_time_and_duration(
             appointment_history["start_time"], 
             appointment_history["duration"]
@@ -272,11 +267,20 @@ class AppointmentProcessor:
             self.appointment_database.update_memory_schedule(tech["id"], start_time, end_time)
             # 使用 LLM agent 生成结合北京天气的温馨提示
             if self.llm and hasattr(self, 'agent_executor'):
-                prompt = f"请获取北京今天的天气信息，然后结合天气情况为用户生成一段温馨的预约成功提示。技师姓名：{tech['name']}，性别：{tech['gender']}。请根据天气给出合适的建议和关怀。"
+                prompt = (
+                    "请获取当前天气信息，然后为家教培训机构用户生成一段试听课或课程预约成功提示。"
+                    f"老师姓名：{tech['name']}，性别：{tech['gender']}。"
+                    "请结合天气给出到校区上课、线上课准备、学习资料准备或出行安排建议。"
+                    "不得出现原生活服务预约场景中的职业称呼、用户称呼、服务承诺、放松护理或户外护肤文案。"
+                )
                 try:
                     result = await self.agent_executor.ainvoke({"input": prompt})
                     agent_output = result.get("output", "")
-                    return f"\n机器人：已为您预约技师：{tech['name']}，性别：{tech['gender']}。预约成功！\n{agent_output}\n"
+                    return (
+                        f"\n排课助手：已为您预约老师：{tech['name']}，性别：{tech['gender']}。"
+                        "试听课/课程预约成功！\n"
+                        f"{agent_output}\n"
+                    )
                 except Exception as e:
                     print(f"Agent调用失败: {e}")
                     return self.message_builder.create_appointment_success_message(tech)
@@ -292,18 +296,30 @@ class AppointmentProcessor:
         technician_name = appointment_history.get("technician_name")
         
         # 基本必需信息
-        if not appointment_history.get("start_time") or appointment_history.get("start_time") == "未知":
+        if not self._has_valid_field(appointment_history, "start_time"):
             missing.append("start_time")
-        if not appointment_history.get("project") or appointment_history.get("project") == "未知":
+        if not self._has_valid_field(appointment_history, "project"):
             missing.append("project")
-        if not appointment_history.get("duration") or appointment_history.get("duration") == "未知":
+        if not self._has_valid_field(appointment_history, "duration"):
             missing.append("duration")
         
-        # 如果没有指定技师名，则需要性别
-        if not technician_name or technician_name == "未知":
-            if not appointment_history.get("gender") or appointment_history.get("gender") == "未知":
-                missing.append("gender")
-        
         reply = self.message_builder.create_missing_info_questions(missing)
-        yield f"[THOUGHT][预约机器人]用户的预约信息不完整，缺少：{', '.join(missing)}，我需要询问用户补充这些信息"
-        yield f"[REPLY][预约机器人]{reply}"
+        missing_labels = self.message_builder.format_missing_fields(missing)
+        yield f"[THOUGHT][排课助手]用户的课程预约信息不完整，还需要补充：{missing_labels}，我需要询问用户补充这些信息"
+        yield f"[REPLY][排课助手]{reply}"
+
+    def _has_valid_field(self, appointment_history: Dict[str, Any], field: str) -> bool:
+        """判断内部字段是否具备可用于排课的业务含义"""
+        value = appointment_history.get(field)
+        if not value or value == "未知":
+            return False
+
+        value_text = str(value).strip()
+        if not value_text:
+            return False
+
+        if field == "start_time":
+            invalid_tokens = ["请确认", "待确认", "具体时间", "[", "]"]
+            return not any(token in value_text for token in invalid_tokens)
+
+        return True
