@@ -58,5 +58,11 @@ jobs:
       - name: Check RAG export script syntax
         run: python -m py_compile scripts/export_tutoring_kb_for_modular_rag.py
 
+      - name: Check RAG Shadow helper syntax
+        run: |
+          python -m py_compile config/rag_mcp_config.py
+          python -m py_compile services/rag_mcp_client.py
+          python -m py_compile services/rag_eval_logger.py
+
       - name: Check RAG export script CLI
         run: python scripts/export_tutoring_kb_for_modular_rag.py --help
