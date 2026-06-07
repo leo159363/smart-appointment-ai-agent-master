@@ -10,6 +10,23 @@ jobs:
   quality-checks:
     name: Basic quality checks
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      MODEL_PROVIDER: "azure"
+      AZURE_OPENAI_API_KEY: "ci-dummy-key"
+      AZURE_OPENAI_ENDPOINT: "https://ci-dummy.openai.azure.com/"
+      AZURE_OPENAI_DEPLOYMENT: "ci-dummy-deployment"
+      AZURE_OPENAI_VERSION: "2024-02-15-preview"
+      AZURE_OPENAI_API_VERSION: "2024-02-15-preview"
+      OPENAI_API_VERSION: "2024-02-15-preview"
+      OPENAI_API_KEY: "ci-dummy-key"
+      LLM_API_KEY: "ci-dummy-key"
+      LLM_BASE_URL: "https://ci-dummy.openai.azure.com/"
+      LLM_MODEL: "ci-dummy-model"
+      EMBEDDING_PROVIDER: "openai-compatible"
+      EMBEDDING_API_KEY: "ci-dummy-key"
+      EMBEDDING_BASE_URL: "https://ci-dummy.openai.azure.com/"
+      EMBEDDING_MODEL: "ci-dummy-embedding"
 
     steps:
       - name: Checkout repository
