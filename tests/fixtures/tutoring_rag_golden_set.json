@@ -1,0 +1,97 @@
+{
+  "description": "Golden test set for Eval-only RAG quality checks in the AI tutoring consultation and scheduling project.",
+  "version": "1.0",
+  "domain": "tutoring",
+  "test_cases": [
+    {
+      "id": "case_001",
+      "query": "试听课怎么预约？",
+      "expected_categories": ["试听/排课规则", "课程介绍"],
+      "expected_keywords": ["试听课", "提前预约", "学习建议"],
+      "ideal_answer": "试听课需要提前预约，试听后会结合学生表现、基础和学习目标给出学习建议，并推荐后续正式课排课方案。",
+      "must_not_include": ["按摩", "推拿", "技师"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "case_002",
+      "query": "10课时包和20课时包有什么区别？",
+      "expected_categories": ["课时包/课程包"],
+      "expected_keywords": ["10课时包", "20课时包", "短期补弱", "系统提升"],
+      "ideal_answer": "10课时包更适合短期补弱、考前冲刺或阶段性查漏补缺；20课时包更适合系统提升、长期规划和持续跟进，具体方案应在试听后结合学生情况确认。",
+      "must_not_include": ["按摩", "推拿", "技师", "统一标价"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "case_003",
+      "query": "初二数学基础比较弱，能推荐什么样的老师？",
+      "expected_categories": ["课程体系", "老师介绍"],
+      "expected_keywords": ["初中", "数学", "基础补弱", "教学风格"],
+      "ideal_answer": "可以选择初中数学一对一基础补弱方向的老师，并根据学生基础、目标分数、学习习惯和适合的教学风格匹配耐心细致型或基础补弱型老师。",
+      "must_not_include": ["按摩", "推拿", "技师"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "case_004",
+      "query": "高一物理想考前冲刺，课程怎么安排？",
+      "expected_categories": ["课程体系", "老师介绍"],
+      "expected_keywords": ["高中", "物理", "考前短期提分", "应试提分"],
+      "ideal_answer": "系统支持高中物理一对一和考前短期提分，可以围绕薄弱概念、目标分数和考试时间匹配应试提分型或基础补弱型老师，再确认可上课时间安排课程。",
+      "must_not_include": ["按摩", "推拿", "技师", "保证提分"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "case_005",
+      "query": "线上课和线下课有什么区别？",
+      "expected_categories": ["校区/线上课"],
+      "expected_keywords": ["线上课", "直播课", "线下课", "校区"],
+      "ideal_answer": "系统支持线上直播课和线下校区上课，具体上课方式可在试听课前确认；线下课会结合校区距离和老师课表安排，上门授课需要单独确认范围和时间。",
+      "must_not_include": ["按摩", "推拿", "技师", "门店"],
+      "difficulty": "easy"
+    },
+    {
+      "id": "case_006",
+      "query": "正式排课前需要确认哪些信息？",
+      "expected_categories": ["试听/排课规则", "咨询/上课时间"],
+      "expected_keywords": ["正式排课", "学生时间", "老师时间", "课程包"],
+      "ideal_answer": "正式排课前需要确认学生可上课时间、老师时间和课程包方案，并在排课时避免与老师已有课表冲突；工作日晚间、周末和寒暑假时段通常可沟通安排。",
+      "must_not_include": ["按摩", "推拿", "技师", "duration", "gender"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "case_007",
+      "query": "退费或者临时改课有什么规则？",
+      "expected_categories": ["课时包/课程包", "试听/排课规则"],
+      "expected_keywords": ["退费", "改约", "请假", "补课", "合同"],
+      "ideal_answer": "改约、请假和补课通常需要提前联系课程顾问；退费需要核对剩余课时、已上课时、赠送课时、课程有效期和合同约定。",
+      "must_not_include": ["按摩", "推拿", "技师", "直接退款"],
+      "difficulty": "hard"
+    },
+    {
+      "id": "case_008",
+      "query": "老师匹配主要看哪些依据？",
+      "expected_categories": ["老师介绍"],
+      "expected_keywords": ["学生基础", "目标分数", "学习习惯", "教学风格"],
+      "ideal_answer": "老师匹配会结合学生基础、目标分数、学习习惯和适合的授课风格，常见风格包括耐心细致型、应试提分型、互动鼓励型、严格督促型、基础补弱型和拔高竞赛型。",
+      "must_not_include": ["按摩", "推拿", "技师", "随机分配"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "case_009",
+      "query": "学习需求分析能做什么？",
+      "expected_categories": ["课程介绍", "教学质量"],
+      "expected_keywords": ["学习建议", "薄弱点", "目标分数", "学习计划"],
+      "ideal_answer": "学习需求分析可以结合学生表现、薄弱点、目标分数和学习习惯形成学习建议，并在正式课程中通过阶段测评、错题复盘和反馈持续调整学习计划。",
+      "must_not_include": ["按摩", "推拿", "技师", "医疗诊断"],
+      "difficulty": "medium"
+    },
+    {
+      "id": "case_010",
+      "query": "教学质量后续怎么跟踪？",
+      "expected_categories": ["教学质量"],
+      "expected_keywords": ["课堂反馈", "阶段测评", "错题复盘", "家长回访"],
+      "ideal_answer": "教学质量会通过课堂反馈、阶段测评、错题复盘和家长回访进行跟踪，课程顾问会结合老师反馈和学生作业情况建议是否调整频次、老师或学习计划。",
+      "must_not_include": ["按摩", "推拿", "技师", "只靠感觉"],
+      "difficulty": "easy"
+    }
+  ]
+}
