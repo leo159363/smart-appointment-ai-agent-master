@@ -48,6 +48,11 @@ def create_chat_model(temperature: float = 0):
     """
     provider = get_model_provider()
 
+    if provider == "fake":
+        from config.fake_llm_provider import FakeChatModel
+
+        return FakeChatModel(temperature=temperature)
+
     if provider == "azure":
         return AzureChatOpenAI(
             azure_deployment=_env("AZURE_OPENAI_DEPLOYMENT"),
@@ -67,13 +72,18 @@ def create_chat_model(temperature: float = 0):
 
     raise ValueError(
         f"Unsupported MODEL_PROVIDER={provider!r}. "
-        "Use azure, qwen, deepseek, zhipu, openai, or openai-compatible."
+        "Use azure, qwen, deepseek, zhipu, openai, openai-compatible, or fake."
     )
 
 
 def create_embedding_model():
     """Create an embedding model from environment configuration."""
     provider = (_env("EMBEDDING_PROVIDER") or get_model_provider()).strip().lower()
+
+    if provider == "fake":
+        from config.fake_llm_provider import FakeEmbeddingModel
+
+        return FakeEmbeddingModel()
 
     if provider == "azure":
         return AzureOpenAIEmbeddings(
@@ -95,5 +105,5 @@ def create_embedding_model():
 
     raise ValueError(
         f"Unsupported EMBEDDING_PROVIDER={provider!r}. "
-        "Use azure, qwen, zhipu, openai, or openai-compatible."
+        "Use azure, qwen, zhipu, openai, openai-compatible, or fake."
     )
