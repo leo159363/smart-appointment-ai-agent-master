@@ -34,7 +34,7 @@ Shadow 模式不会替换 `KnowledgeService.search()`，也不会改变首页咨
 
 本地 RAG 已经支撑当前 MVP 的咨询回答。直接替换主链路会影响咨询 Agent、PromptBuilder、接口返回结构和页面演示稳定性。
 
-Shadow 模式可以在不影响用户正式回答的前提下，对比本地 RAG 与 Modular RAG 的检索结果、耗时和错误情况。只有当 Eval-only 与 Shadow 指标稳定后，才适合考虑 Primary 模式。
+Shadow 模式可以在不影响用户正式回答的前提下，对比本地 RAG 与 Modular RAG 的检索结果、耗时和错误情况。因此项目先完成 Eval-only 和 Shadow，再进入 Primary 主检索层接入；即使启用 Primary，也继续保留本地 FAISS fallback。
 
 ## 4. 配置项说明
 
@@ -63,7 +63,7 @@ RAG_MCP_COMMAND=
 
 - `RAG_MCP_MODE=local`：只使用当前本地 RAG，不调用 Modular。
 - `RAG_MCP_MODE=shadow`：正式回答仍使用本地 RAG，后台旁路调用 Modular 并写 jsonl 日志。
-- `RAG_MCP_MODE=primary`：当前仅预留，不启用。
+- `RAG_MCP_MODE=primary`：已实现并完成主检索层真实联调，但默认不启用；启用后优先调用 Modular RAG，失败时回退本地 FAISS。
 
 transport 说明：
 
@@ -123,13 +123,23 @@ Modular 不可用、超时、collection 不存在或返回错误时：
 - `logs/rag_eval/shadow_eval.jsonl` 中记录 `modular.ok=false` 和 `modular.error`。
 - 不会抛出异常中断首页咨询流程。
 
-## 8. 后续 Primary 模式计划
+## 8. Primary 模式现状
 
-Primary 模式已作为可选配置支持，但默认不启用。它只应在评估指标稳定后使用：
+Primary 模式已作为可选配置支持，并已完成主检索层真实联调，但默认不启用。它只应在评估指标稳定后使用：
 
 - Modular RAG 成为主检索源。
 - 本地 FAISS 保留 fallback。
 - Modular 超时或失败时自动回退到 `KnowledgeService.search()`。
+
+第 7E 联调确认：
+
+- 当前项目通过 `mcp_stdio` 子进程调用 Modular 的 `query_knowledge_hub`。
+- `tutoring_course_kb` 已导入 8 条家教课程知识。
+- Modular 独立查询可命中试听课、课时包、老师匹配、线上课和线下课规则。
+- 当前项目 primary 检索层日志可记录 `final_source=modular_primary`。
+- Modular 不可用时日志记录 `final_source=local_fallback`，正式用户回答不暴露 MCP error。
+
+该验证是 RAG 主检索层联调，不等同于完整外部 LLM 端到端回答链路联调。
 - PromptBuilder 尽量不大改，只适配统一的 `knowledge_docs` 结构。
 
 详细切换方式见 `docs/RAG_PRIMARY_SWITCH_GUIDE.md`。

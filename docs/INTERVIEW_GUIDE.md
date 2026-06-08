@@ -50,6 +50,12 @@ RAG Eval-only 阶段会把当前课程知识导出为 JSON，并使用 golden te
 
 MODULAR-RAG-MCP-SERVER 目前是可选独立评估层和知识层。默认正式业务仍使用本地 `KnowledgeService.search()`；当设置 `RAG_MCP_MODE=shadow` 时只做旁路对比，当设置 `RAG_MCP_MODE=primary` 时优先使用 Modular，失败后自动回退本地 RAG。
 
+RAG/MCP Primary 真实联调可以这样讲：
+
+“我没有直接硬替换本地 RAG，而是做了 local/shadow/primary 三种模式。当前已经完成 primary 检索层真实联调：系统优先通过 `mcp_stdio` 调用 Modular RAG MCP Server 的 `query_knowledge_hub`，在 `tutoring_course_kb` 中检索课程知识；如果 Modular 服务不可用、超时或返回空文档，则自动 fallback 到本地 FAISS。这样既完成了 Modular RAG 主检索接入，又保证咨询链路稳定。”
+
+边界也要说清楚：这次验证的是 RAG 主检索层，不夸大为完整 LLM 端到端联调。
+
 ## 6. 测试开发怎么讲
 
 迁移前先建立基线，不直接大面积改代码。基础基线包括 `import app` 验证应用入口、`pytest --collect-only` 验证测试可发现、目标测试识别已知失败范围。

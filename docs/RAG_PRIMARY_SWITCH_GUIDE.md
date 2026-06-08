@@ -94,7 +94,34 @@ Primary 模式下，系统会先调用 Modular RAG。
 - 日志记录 `fallback_reason` 和 Modular error。
 - 用户不会看到 MCP 错误。
 
-## 7. 面试表述
+## 7. 真实联调结果
+
+第 7E 已完成 Modular RAG MCP Server 作为 Primary 检索源的真实联调。当前验证的是 RAG 主检索层，不夸大为完整首页 LLM 端到端回答链路联调。
+
+本次联调使用 `mcp_stdio` 子进程调用，不是 HTTP 常驻服务。Modular MCP Server 启动命令为：
+
+```powershell
+python -m src.mcp_server.server
+```
+
+建议使用 `MODULAR-RAG-MCP-SERVER-main` 项目自己的 `.venv` Python 启动，避免 Windows 下 Anaconda 与 ChromaDB 版本兼容问题。
+
+已完成的数据和查询验证：
+
+- `tutoring_course_kb` collection 已导入 8 条家教课程知识。
+- Modular 独立查询可以命中试听课、课时包、老师匹配、线上课和线下课规则。
+- 当前项目 `RAG_MCP_MODE=primary` 检索层验证通过。
+- primary 日志中已出现 `event=primary_used_modular`、`final_source=modular_primary`、`modular_ok=True`、`modular_count=3`。
+- fallback 验证通过，Modular 不可用或 Python 路径错误时，用户链路不暴露 MCP error，日志记录 `final_source=local_fallback`。
+
+边界说明：
+
+- 已完成 Modular RAG 主检索层真实联调。
+- 未宣称完整首页 LLM 端到端回答链路已完成真实外部 LLM 联调。
+- 当前正式回答链路仍保留本地 FAISS fallback。
+- 默认模式仍是 `local`，只有显式设置 `RAG_MCP_MODE=primary` 才会优先调用 Modular RAG。
+
+## 8. 面试表述
 
 推荐表述：
 
@@ -103,4 +130,3 @@ Primary 模式下，系统会先调用 Modular RAG。
 不要表述为：
 
 “本地 RAG 已经被完全废弃。”
-

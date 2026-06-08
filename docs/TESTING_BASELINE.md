@@ -78,9 +78,22 @@ GitHub Actions 当前执行：
 - RAG/MCP 配置、client 和 logger `py_compile`。
 - RAG export script `--help`。
 
-CI 当前只做基础质量门禁，不做 CD 部署，不自动 commit，不运行真实 LLM 调用。
+CI 当前只做基础质量门禁，不做 CD 部署，不自动 commit，不运行真实 LLM 调用，也不启动真实 MODULAR-RAG-MCP-SERVER。
 
-## 7. 后续测试计划
+## 7. Modular RAG Primary 本地集成验证
+
+Modular RAG Primary 真实联调属于本地集成验证，不是当前 GitHub Actions 的阻塞检查。CI 只做 `py_compile` 和基础导入、测试收集，避免依赖本机 Modular 服务、collection 数据或外部模型配置。
+
+本地集成验证重点：
+
+- Modular 独立查询成功，能够命中 `tutoring_course_kb`。
+- 当前项目设置 `RAG_MCP_MODE=primary` 后，日志出现 `final_source=modular_primary`。
+- Modular 不可用、Python 路径错误或返回空文档时，日志出现 `final_source=local_fallback`。
+- 页面用户链路不暴露 MCP error，本地 `KnowledgeService.search()` fallback 保持可用。
+
+该验证只说明 RAG 主检索层真实联调完成，不等同于完整外部 LLM 端到端回答链路已完成。
+
+## 8. 后续测试计划
 
 - 引入 fake/mock LLM provider，让任务分类和 Agent 单测脱离真实外部服务。
 - 补充 API 自动化测试，覆盖课程咨询、预约排课、老师查询、知识库和学习需求分析接口。
