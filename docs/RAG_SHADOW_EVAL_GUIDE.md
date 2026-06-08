@@ -38,15 +38,16 @@ Shadow 模式可以在不影响用户正式回答的前提下，对比本地 RAG
 
 ## 4. 配置项说明
 
-默认配置如下：
+当前默认配置如下：
 
 ```text
-RAG_MCP_MODE=local
+RAG_MCP_MODE=primary
+RAG_MCP_TRANSPORT=mcp_stdio
 RAG_MCP_ENDPOINT=http://127.0.0.1:8001
 RAG_MCP_COLLECTION=tutoring_course_kb
 RAG_MCP_TIMEOUT_SECONDS=3
 RAG_MCP_TOP_K=3
-RAG_MCP_LOG_PATH=logs/rag_eval/shadow_eval.jsonl
+RAG_MCP_LOG_PATH=logs/rag_eval/primary_eval.jsonl
 ```
 
 扩展配置：
@@ -63,7 +64,7 @@ RAG_MCP_COMMAND=
 
 - `RAG_MCP_MODE=local`：只使用当前本地 RAG，不调用 Modular。
 - `RAG_MCP_MODE=shadow`：正式回答仍使用本地 RAG，后台旁路调用 Modular 并写 jsonl 日志。
-- `RAG_MCP_MODE=primary`：已实现并完成主检索层真实联调，但默认不启用；启用后优先调用 Modular RAG，失败时回退本地 FAISS。
+- `RAG_MCP_MODE=primary`：默认模式，优先调用 Modular RAG，失败时回退本地 FAISS。
 
 transport 说明：
 
@@ -125,7 +126,7 @@ Modular 不可用、超时、collection 不存在或返回错误时：
 
 ## 8. Primary 模式现状
 
-Primary 模式已作为可选配置支持，并已完成主检索层真实联调，但默认不启用。它只应在评估指标稳定后使用：
+Primary 模式已作为默认主检索配置支持，并已完成主检索层真实联调。它仍保留本地 FAISS fallback：
 
 - Modular RAG 成为主检索源。
 - 本地 FAISS 保留 fallback。

@@ -52,7 +52,7 @@
 - 构建学习需求分析 Agent，输出偏好老师、学习需求、跟进提醒和回访消息。
 - 使用 SQLite + Embedding + FAISS 实现本地轻量 RAG，`KnowledgeService.search()` 作为当前正式课程知识检索入口。
 - 新增 RAG Eval-only 导出脚本，将活跃课程知识导出为后续评估层可适配 JSON。
-- 设计 tutoring golden test set，并接入 MODULAR-RAG-MCP-SERVER 的 Shadow 对比和 Primary 主检索模式；默认 local，Primary 失败时回退本地 RAG。
+- 设计 tutoring golden test set，并接入 MODULAR-RAG-MCP-SERVER 的 Shadow 对比和 Primary 主检索模式；当前默认 primary，失败时回退本地 RAG。
 - 接入 MODULAR-RAG-MCP-SERVER 作为可配置 RAG/MCP 检索层，支持 local、shadow、primary 三种模式；Primary 模式下优先调用 Modular 的 `query_knowledge_hub` 检索 `tutoring_course_kb`，失败时自动 fallback 到本地 FAISS，保证咨询链路可用性。
 - 完成 Modular RAG 主检索层真实联调，导入 8 条家教课程知识并验证试听课、课时包、老师匹配、线上/线下课等查询命中结果，同时通过 jsonl 日志记录 `final_source`、`modular_count`、fallback 原因等评估信息。
 

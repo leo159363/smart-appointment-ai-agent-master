@@ -79,11 +79,11 @@ data/smart_appointment.db
 
 课程知识保存在 `knowledge_documents` 表中。`KnowledgeService` 初始化时加载活跃知识，生成 embedding，并构建 FAISS 本地向量索引，供咨询 Agent 做轻量 RAG 检索。
 
-FAISS 仍是默认正式业务咨询链路的本地检索组件。当前项目通过 `RAG_MCP_MODE` 支持三种模式：
+当前默认正式业务咨询链路优先使用 MODULAR-RAG-MCP-SERVER，FAISS 作为本地 fallback 保留。项目通过 `RAG_MCP_MODE` 支持三种模式：
 
-- `local`：默认模式，只使用本地 `KnowledgeService.search()`。
+- `local`：只使用本地 `KnowledgeService.search()`，用于不启动 Modular RAG 时的本地模式。
 - `shadow`：正式回答仍使用本地 RAG，后台旁路调用 MODULAR-RAG-MCP-SERVER 记录对比日志。
-- `primary`：正式回答优先使用 MODULAR-RAG-MCP-SERVER；服务不可用、超时、返回空文档或报错时自动回退本地 FAISS。
+- `primary`：默认模式，正式回答优先使用 MODULAR-RAG-MCP-SERVER；服务不可用、超时、返回空文档或报错时自动回退本地 FAISS。
 
 因此本地 RAG 没有被删除，Modular RAG 是可选主检索源和评估层。
 

@@ -4,11 +4,11 @@
 
 当前项目通过 `RAG_MCP_MODE` 支持三种 RAG 模式：
 
-- `local`：默认模式，只使用本地 SQLite + Embedding + FAISS，通过 `KnowledgeService.search()` 检索课程知识。
+- `local`：只使用本地 SQLite + Embedding + FAISS，通过 `KnowledgeService.search()` 检索课程知识；用于显式关闭 Modular RAG。
 - `shadow`：正式回答仍使用本地 RAG，后台旁路调用 Modular RAG 做对比，并写入 jsonl 日志。
-- `primary`：正式回答优先使用 Modular RAG；如果 Modular 不可用、超时、报错或返回空文档，则自动 fallback 到本地 RAG。
+- `primary`：默认模式，正式回答优先使用 Modular RAG；如果 Modular 不可用、超时、报错或返回空文档，则自动 fallback 到本地 RAG。
 
-默认仍是 `local`，不设置环境变量时不会改变现有咨询链路。
+默认已切换为 `primary`，不设置环境变量时会优先调用 Modular RAG；需要完全使用本地 RAG 时，显式设置 `RAG_MCP_MODE=local`。
 
 ## 2. 为什么保留 fallback
 
@@ -119,7 +119,7 @@ python -m src.mcp_server.server
 - 已完成 Modular RAG 主检索层真实联调。
 - 未宣称完整首页 LLM 端到端回答链路已完成真实外部 LLM 联调。
 - 当前正式回答链路仍保留本地 FAISS fallback。
-- 默认模式仍是 `local`，只有显式设置 `RAG_MCP_MODE=primary` 才会优先调用 Modular RAG。
+- 默认模式已切换为 `primary`，但不是硬替换；显式设置 `RAG_MCP_MODE=local` 可完全使用本地 RAG。
 
 ## 8. 面试表述
 

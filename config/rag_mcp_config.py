@@ -1,6 +1,7 @@
-"""Configuration for optional RAG/MCP evaluation modes.
+"""Configuration for RAG/MCP retrieval modes.
 
-The default mode is local, which keeps the current built-in RAG path only.
+The default mode is primary, which tries Modular RAG first and falls back to
+the current built-in local RAG when Modular is unavailable.
 This module reads environment variables but does not load or print .env files.
 """
 
@@ -15,6 +16,8 @@ from typing import Optional, Tuple
 
 VALID_RAG_MCP_MODES = {"local", "shadow", "primary"}
 VALID_RAG_MCP_TRANSPORTS = {"http", "mcp_stdio", "cli"}
+DEFAULT_RAG_MCP_MODE = "primary"
+DEFAULT_RAG_MCP_TRANSPORT = "mcp_stdio"
 
 
 def _env(name: str, default: Optional[str] = None) -> Optional[str]:
@@ -63,10 +66,10 @@ def _command_env(name: str) -> Optional[Tuple[str, ...]]:
 class RagMcpConfig:
     """Runtime options for local/shadow/primary RAG modes."""
 
-    mode: str = "local"
+    mode: str = DEFAULT_RAG_MCP_MODE
     endpoint: str = "http://127.0.0.1:8001"
     http_path: str = "/query_knowledge_hub"
-    transport: str = "http"
+    transport: str = DEFAULT_RAG_MCP_TRANSPORT
     collection: str = "tutoring_course_kb"
     timeout_seconds: float = 3.0
     top_k: int = 3
@@ -91,13 +94,13 @@ class RagMcpConfig:
 def load_rag_mcp_config() -> RagMcpConfig:
     """Load RAG/MCP config from environment variables."""
 
-    mode = (_env("RAG_MCP_MODE", "local") or "local").lower()
+    mode = (_env("RAG_MCP_MODE", DEFAULT_RAG_MCP_MODE) or DEFAULT_RAG_MCP_MODE).lower()
     if mode not in VALID_RAG_MCP_MODES:
-        mode = "local"
+        mode = DEFAULT_RAG_MCP_MODE
 
-    transport = (_env("RAG_MCP_TRANSPORT", "http") or "http").lower()
+    transport = (_env("RAG_MCP_TRANSPORT", DEFAULT_RAG_MCP_TRANSPORT) or DEFAULT_RAG_MCP_TRANSPORT).lower()
     if transport not in VALID_RAG_MCP_TRANSPORTS:
-        transport = "http"
+        transport = DEFAULT_RAG_MCP_TRANSPORT
 
     server_cwd_value = _env("RAG_MCP_SERVER_CWD")
     server_cwd = Path(server_cwd_value) if server_cwd_value else _default_modular_repo_path()

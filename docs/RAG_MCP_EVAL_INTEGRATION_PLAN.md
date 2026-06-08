@@ -4,7 +4,7 @@
 
 当前项目内置轻量 RAG，主要由 SQLite 课程知识表、Embedding 和 FAISS 索引组成。`KnowledgeService.search()` 是当前正式检索入口，咨询 Agent 通过 `agents/consultant/knowledge_retriever.py` 获取知识片段，再交给响应生成链路。
 
-当前已完成 Eval-only、Shadow 和 Primary 三个阶段的接入准备与代码实现。第 7E 已完成 Primary 主检索层真实联调：当前项目可通过 `mcp_stdio` 调用 Modular 的 `query_knowledge_hub` 检索 `tutoring_course_kb`，并在 Modular 不可用、超时或返回空文档时自动 fallback 到本地 FAISS。默认模式仍是 `local`，未宣称完整首页 LLM 端到端回答链路已完成真实外部 LLM 联调。
+当前已完成 Eval-only、Shadow 和 Primary 三个阶段的接入准备与代码实现。第 7E 已完成 Primary 主检索层真实联调：当前项目可通过 `mcp_stdio` 调用 Modular 的 `query_knowledge_hub` 检索 `tutoring_course_kb`，并在 Modular 不可用、超时或返回空文档时自动 fallback 到本地 FAISS。当前默认模式已切换为 `primary`，未宣称完整首页 LLM 端到端回答链路已完成真实外部 LLM 联调。
 
 ## 2. 为什么不直接替换现有 RAG
 
@@ -20,7 +20,7 @@ Eval-only 阶段只做三件事：
 2. 准备 `tutoring_course_kb` collection 的后续导入数据。
 3. 使用 `tutoring_rag_golden_set.json` 作为课程咨询评估集。
 
-该导出数据已用于 `tutoring_course_kb` 的本地联调导入。后续仍可在 `MODULAR-RAG-MCP-SERVER-main` 中基于该数据集运行 `hit_rate`、`mrr`、`faithfulness`、`context_precision` 等指标。默认 local 模式下，当前家教系统业务回答不受影响。
+该导出数据已用于 `tutoring_course_kb` 的本地联调导入。后续仍可在 `MODULAR-RAG-MCP-SERVER-main` 中基于该数据集运行 `hit_rate`、`mrr`、`faithfulness`、`context_precision` 等指标。默认 primary 模式下，Modular 不可用时会回退本地 FAISS，当前家教系统业务回答不受影响。
 
 ## 4. 当前新增文件
 
@@ -83,7 +83,7 @@ Shadow 阶段已完成接入。该模式仍让当前业务使用本地 `Knowledg
 
 MCP 服务失败、超时或返回空结果时，只记录日志，不影响用户正式回答。
 
-当前项目已新增可选 Shadow 旁路接入。默认 `RAG_MCP_MODE=local`，完全不调用 Modular RAG；只有设置 `RAG_MCP_MODE=shadow` 后，`agents/consultant/knowledge_retriever.py` 才会在本地 RAG 返回正式结果后，后台调用 `RagMcpClient` 并通过 `RagEvalLogger` 写入 `logs/rag_eval/shadow_eval.jsonl`。
+当前项目已新增可选 Shadow 旁路接入。设置 `RAG_MCP_MODE=shadow` 后，`agents/consultant/knowledge_retriever.py` 会在本地 RAG 返回正式结果后，后台调用 `RagMcpClient` 并通过 `RagEvalLogger` 写入 `logs/rag_eval/shadow_eval.jsonl`。需要完全不调用 Modular RAG 时，可设置 `RAG_MCP_MODE=local`。
 
 该接入不是 Primary 替换，不改变 `KnowledgeService.search()`，也不改变 PromptBuilder、API 路由、数据库 schema 或页面流程。
 
@@ -91,7 +91,7 @@ Modular 项目当前确认的直接入口是 stdio MCP server 和 `scripts/query
 
 ## 8. Primary 模式状态
 
-Primary 模式已完成代码接入，并已完成主检索层真实联调。本地 FAISS 必须保留为 fallback。当前项目支持可选 `RAG_MCP_MODE=primary`，但默认仍是 `local`。
+Primary 模式已完成代码接入，并已完成主检索层真实联调。本地 FAISS 必须保留为 fallback。当前项目默认使用 `RAG_MCP_MODE=primary`，可显式设置 `RAG_MCP_MODE=local` 切回本地 RAG。
 
 Primary 模式的边界：
 
@@ -122,7 +122,7 @@ Primary 模式的边界：
 - 两个项目的 embedding 配置可能不同，检索结果不一定完全可比。
 - Ragas 类指标可能依赖 LLM 或 embedding 外部服务，可能出现外部连接失败。
 - 当前阶段不保证完整 MCP 生产部署。
-- 默认 `local` 不影响原 MVP；`primary` 也保留本地 `KnowledgeService.search()` fallback。
+- 默认 `primary` 优先调用 Modular RAG；`primary` 保留本地 `KnowledgeService.search()` fallback，`local` 可用于完全关闭 Modular 调用。
 - 当前阶段不修改 API 路由、数据库 schema、PromptBuilder 或页面。
 
 ## 10. 验证命令

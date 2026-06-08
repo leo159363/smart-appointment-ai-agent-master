@@ -79,4 +79,4 @@ GitHub Actions 中的 `CI / Basic quality checks` 已配置同类基础检查，
 - 系统使用 FastAPI + 多 Agent + 本地 RAG + SQLite 演示数据完成 MVP 闭环。
 - 当前保留部分 `technician` 内部命名，是为了降低迁移风险和保持旧接口兼容。
 - CI 已覆盖基础质量检查，后续可以继续加入 mock LLM、API 自动化测试、Playwright 页面验收和 RAG golden set 自动评估。
-- MODULAR-RAG-MCP-SERVER 已支持可选 Shadow 对比和 Primary 主检索模式；默认仍是 local，本地 FAISS 保留为 fallback。
+- MODULAR-RAG-MCP-SERVER 已支持 Shadow 对比和 Primary 主检索模式；当前默认是 primary，优先调用 Modular RAG，本地 FAISS 保留为 fallback。

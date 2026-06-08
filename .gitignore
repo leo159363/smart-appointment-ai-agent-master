@@ -41,6 +41,9 @@ data/*.db-*
 *.log
 logs/
 
+# --- Local generated exports ---
+exports/tutoring_course_kb.json
+
 # --- Tests / coverage ---
 .pytest_cache/
 .coverage
@@ -54,6 +57,8 @@ htmlcov/
 # --- IDE / OS ---
 .idea/
 .vscode/
+.claude/
+CLAUDE.md
 *.swp
 *.swo
 .DS_Store

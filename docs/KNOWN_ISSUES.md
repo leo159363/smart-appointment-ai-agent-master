@@ -17,7 +17,7 @@
 1. LLM/OpenAI-compatible 外部连接失败会影响部分 Agent 单测。
 2. 内部仍保留 `technician`、`appointment`、`service_type`、`technician_id` 等历史兼容字段。
 3. `data/smart_appointment.db` 不强制提交，演示数据通过 `scripts/reset_demo_data.py` 重建。
-4. MODULAR-RAG-MCP-SERVER 已完成 Eval-only、Shadow 和 Primary 主检索层联调，默认仍是 local；更大规模知识库、量化评估和完整 LLM 端到端稳定测试仍待完善。
+4. MODULAR-RAG-MCP-SERVER 已完成 Eval-only、Shadow 和 Primary 主检索层联调，当前默认是 primary，并保留本地 FAISS fallback；更大规模知识库、量化评估和完整 LLM 端到端稳定测试仍待完善。
 5. 当前没有登录鉴权和 RBAC 权限隔离。
 6. 当前没有 Playwright 页面自动化。
 7. 当前没有 Docker/CD 部署。
