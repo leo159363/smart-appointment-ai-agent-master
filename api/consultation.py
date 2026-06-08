@@ -6,9 +6,9 @@
 from fastapi import APIRouter, HTTPException
 from .core.response_models import (
     ConsultationRequest,
-    ConsultationResponse,
     DataResponse
 )
+from agents.consultant_agent import ConsultantAgent
 
 router = APIRouter(prefix="/api/consultation", tags=["课程咨询"])
 
@@ -17,10 +17,8 @@ router = APIRouter(prefix="/api/consultation", tags=["课程咨询"])
 async def ask_consultation(request: ConsultationRequest):
     """提交课程体系、收费规则、老师介绍、试听课规则或学习规划相关咨询问题"""
     try:
-        # 简化实现 - 直接导入需要的agent
-        from agents.consultant_agent import ConsultantAgent
         agent = ConsultantAgent()
-        result = await agent.process_consultation(request.question)
+        result = await agent.consult(request.question)
         
         return DataResponse(
             message="课程咨询处理成功",
