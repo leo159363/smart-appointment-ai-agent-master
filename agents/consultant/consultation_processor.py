@@ -20,13 +20,17 @@ class ConsultationProcessor:
         self.consultation_classifier = consultation_classifier
         self.response_generator = response_generator
     
-    async def process_consultation(self, user_input: str) -> str:
+    async def process_consultation(self, user_input: str, student_profile_context: str = "") -> str:
         """处理标准咨询"""
         # 1. 检索知识
         knowledge_docs = await self.knowledge_retriever.search_knowledge(user_input, top_k=3)
         
         # 2. 生成响应
-        response = await self.response_generator.generate_response(user_input, knowledge_docs)
+        response = await self.response_generator.generate_response(
+            user_input,
+            knowledge_docs,
+            student_profile_context=student_profile_context,
+        )
         
         return response
     

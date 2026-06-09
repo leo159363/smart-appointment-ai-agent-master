@@ -43,10 +43,18 @@ class PromptBuilder:
             "用户输入：{user_input}"
         )
     
-    def build_consultation_prompt(self, user_input: str, knowledge_docs: List[Dict[str, Any]]) -> str:
+    def build_consultation_prompt(
+        self,
+        user_input: str,
+        knowledge_docs: List[Dict[str, Any]],
+        student_profile_context: str = "",
+    ) -> str:
         """构建咨询提示词"""
         context = self._build_knowledge_context(knowledge_docs)
-        return f"{self.system_prompt}\n\n{context}\n用户问题：{user_input}\n\n请回答用户的问题。"
+        profile_context = ""
+        if student_profile_context:
+            profile_context = f"\n补充学生画像上下文（仅作为个性化参考，不替代知识库信息）：\n{student_profile_context}\n"
+        return f"{self.system_prompt}\n\n{context}{profile_context}\n用户问题：{user_input}\n\n请回答用户的问题。"
     
     def build_classification_prompt(self, user_input: str) -> str:
         """构建分类提示词"""

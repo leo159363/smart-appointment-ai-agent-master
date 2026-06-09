@@ -16,10 +16,14 @@ class ResponseGenerator:
         self.llm = llm
         self.prompt_builder = PromptBuilder()
     
-    async def generate_response(self, user_input: str, knowledge_docs: list) -> str:
+    async def generate_response(self, user_input: str, knowledge_docs: list, student_profile_context: str = "") -> str:
         """生成标准响应"""
         try:
-            prompt = self.prompt_builder.build_consultation_prompt(user_input, knowledge_docs)
+            prompt = self.prompt_builder.build_consultation_prompt(
+                user_input,
+                knowledge_docs,
+                student_profile_context=student_profile_context,
+            )
             response = await self.llm.ainvoke([{"role": "user", "content": prompt}])
             return self._enhance_pricing_response(user_input, response.content)
         except Exception as e:

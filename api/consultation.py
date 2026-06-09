@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/consultation", tags=["课程咨询"])
 async def ask_consultation(request: ConsultationRequest):
     """提交课程体系、收费规则、老师介绍、试听课规则或学习规划相关咨询问题"""
     try:
-        agent = ConsultantAgent()
+        agent = ConsultantAgent(user_id=request.user_id or "default_user")
         result = await agent.consult(request.question)
         
         return DataResponse(

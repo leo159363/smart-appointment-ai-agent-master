@@ -39,7 +39,7 @@ class AppointmentResponse(BaseModel):
 
 # 课程咨询相关模型
 class ConsultationRequest(BaseModel):
-    user_id: str = Field(..., description="学生或家长用户 ID")
+    user_id: str = Field("default_user", description="学生或家长用户 ID")
     question: str = Field(..., description="课程体系、收费规则、老师介绍、试听课规则或学习规划相关问题")
     category: Optional[str] = Field(None, description="可选课程知识分类")
 

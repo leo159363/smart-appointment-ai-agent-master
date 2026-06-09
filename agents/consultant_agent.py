@@ -18,9 +18,11 @@ class ConsultantAgent:
     3. 协调整个咨询流程
     """
     
-    def __init__(self, session_id=None):
+    def __init__(self, session_id=None, user_id: str = "default_user", student_profile_service=None):
         # 基础设置
         self.session_id = session_id or str(uuid.uuid4())
+        self.user_id = user_id or "default_user"
+        self._student_profile_service = student_profile_service
         self.shared_state = None
         self.unrelated_callback = None
         
@@ -36,6 +38,14 @@ class ConsultantAgent:
             self.consultation_classifier,
             self.response_generator
         )
+
+    @property
+    def student_profile_service(self):
+        """懒加载学生画像服务，仅用于非流式咨询补充上下文"""
+        if self._student_profile_service is None:
+            from services.student_profile_service import StudentProfileService
+            self._student_profile_service = StudentProfileService()
+        return self._student_profile_service
 
     def _initialize_llm(self):
         """初始化通用聊天模型"""
@@ -65,7 +75,11 @@ class ConsultantAgent:
         
         用于非流式的简单咨询场景
         """
-        return await self.consultation_processor.process_consultation(user_input)
+        student_profile_context = self._get_student_profile_context()
+        return await self.consultation_processor.process_consultation(
+            user_input,
+            student_profile_context=student_profile_context,
+        )
 
     async def consult_stream(self, user_input: str):
         """
@@ -98,3 +112,13 @@ class ConsultantAgent:
         if self.shared_state:
             from config.constants import StateEnum
             self.shared_state.value = StateEnum.CLASSIFY
+
+    def _get_student_profile_context(self) -> str:
+        """读取学生画像并格式化为咨询 prompt 的补充上下文"""
+        try:
+            profile = self.student_profile_service.get_profile(self.user_id)
+            if not profile:
+                return ""
+            return self.student_profile_service.format_profile_context(profile)
+        except Exception:
+            return ""
