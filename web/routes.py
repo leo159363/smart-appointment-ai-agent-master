@@ -32,7 +32,7 @@ async def read_root(request: Request):
 async def chat_stream_endpoint(chat: ChatRequest):
     """处理流式聊天请求"""
     async def token_generator():
-        async for token in ProcessUserInput_stream(chat.message):
+        async for token in ProcessUserInput_stream(chat.message, user_id=chat.user_id):
             yield token
     return StreamingResponse(token_generator(), media_type="text/plain")
 

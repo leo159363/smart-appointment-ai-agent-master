@@ -72,6 +72,47 @@
         .header-subtitle {
             font-size: 14px;
             opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .user-id-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 8px 14px;
+            margin-top: 4px;
+        }
+
+        .user-id-label {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0.95;
+        }
+
+        .user-id-input {
+            flex: 1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s ease;
+            max-width: 220px;
+        }
+
+        .user-id-input::placeholder {
+            color: rgba(255,255,255,0.65);
+        }
+
+        .user-id-input:focus {
+            background: rgba(255,255,255,0.35);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 0 6px rgba(255,255,255,0.2);
         }
         
         .nav-bar {
@@ -373,6 +414,14 @@
             <div class="header-subtitle">
                 AI驱动的家教培训机构咨询与排课系统 - 为您提供课程咨询、老师匹配和试听课预约体验
             </div>
+            <div class="user-id-bar">
+                <label class="user-id-label" for="user-id-input">
+                    <i class="fas fa-user"></i> 当前用户
+                </label>
+                <input type="text" id="user-id-input" class="user-id-input"
+                       placeholder="输入你的名字，如：小明妈妈"
+                       maxlength="30" autocomplete="off">
+            </div>
         </div>
         
         <!-- 导航栏 -->
@@ -446,6 +495,47 @@
         </div>
     </div>
     <script>
+    // ──────────── 用户身份管理 ────────────
+    const USER_STORAGE_KEY = 'tutoring_user_info';
+
+    function getUserInfo() {
+        try {
+            const raw = localStorage.getItem(USER_STORAGE_KEY);
+            if (raw) {
+                const info = JSON.parse(raw);
+                if (info.user_id) return info;
+            }
+        } catch (_) {}
+        // 首次访问：生成唯一 user_id
+        const info = { user_id: 'user_' + crypto.randomUUID().slice(0, 8) };
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(info));
+        return info;
+    }
+
+    function saveNickname(nickname) {
+        const info = getUserInfo();
+        info.nickname = nickname.trim() || '';
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(info));
+    }
+
+    function getDisplayUserId() {
+        const info = getUserInfo();
+        return info.nickname || info.user_id;
+    }
+
+    // 页面加载时恢复
+    const userIdInput = document.getElementById('user-id-input');
+    const userInfo = getUserInfo();
+    if (userInfo.nickname) {
+        userIdInput.value = userInfo.nickname;
+    } else {
+        userIdInput.placeholder = getDisplayUserId();
+    }
+    userIdInput.addEventListener('change', function () {
+        saveNickname(this.value);
+    });
+    // ──────────────────────────────────────
+
     const chatBox = document.getElementById('chat-box');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
@@ -568,7 +658,7 @@
             const res = await fetch('/chat/stream', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: text})
+                body: JSON.stringify({message: text, user_id: getDisplayUserId()})
             });
             
             hideTypingIndicator();

@@ -39,12 +39,13 @@ class ConsultationProcessor:
         user_input: str,
         session_id: str,
         student_profile_context: str = "",
+        user_id: str = None,
     ) -> AsyncGenerator[str, None]:
         """处理流式咨询"""
         try:
             # 1. 检索知识
             knowledge_docs = await self.knowledge_retriever.search_knowledge(user_input, top_k=3)
-            
+
             # 2. 生成响应
             async for token in self.response_generator.generate_response_stream(
                 user_input,
@@ -52,9 +53,9 @@ class ConsultationProcessor:
                 student_profile_context=student_profile_context,
             ):
                 yield token
-            
+
             # 3. 记录用户行为
-            await self._record_consultation_behavior(user_input, knowledge_docs, session_id)
+            await self._record_consultation_behavior(user_input, knowledge_docs, session_id, user_id)
             
         except Exception as e:
             yield f"[REPLY][咨询机器人]抱歉，处理您的问题时出现了错误：{str(e)}"
@@ -73,18 +74,20 @@ class ConsultationProcessor:
             async for token in unrelated_callback(user_input):
                 yield token
     
-    async def _record_consultation_behavior(self, user_input: str, knowledge_docs: list, session_id: str):
+    async def _record_consultation_behavior(self, user_input: str, knowledge_docs: list, session_id: str, user_id: str = None):
         """记录咨询行为"""
         try:
             from agents.user_behavior_agent import UserBehaviorAgent
             behavior_agent = UserBehaviorAgent()
-            
+            if user_id:
+                behavior_agent.user_id = user_id
+
             action_data = {
                 'question': user_input,
                 'knowledge_docs_used': len(knowledge_docs),
                 'categories': list(set(doc.get('category', 'unknown') for doc in knowledge_docs)) if knowledge_docs else []
             }
-            
+
             behavior_agent.record_behavior(
                 action_type='consultation',
                 action_data=action_data,

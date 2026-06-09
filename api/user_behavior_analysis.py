@@ -57,22 +57,22 @@ async def get_user_analysis(user_id: str = "default_user") -> UserAnalysisRespon
         return UserAnalysisResponse()
 
 
-@router.get("/analysis", response_model=UserAnalysisResponse, summary="获取默认学生/家长学习需求分析")
-async def get_default_user_analysis():
-    """获取默认学生/家长的学习需求分析数据"""
-    return await get_user_analysis("default_user")
+@router.get("/analysis", response_model=UserAnalysisResponse, summary="获取学生/家长学习需求分析")
+async def get_user_analysis_endpoint(user_id: str = "default_user"):
+    """获取指定学生/家长的学习需求分析数据"""
+    return await get_user_analysis(user_id)
 
 
 @router.get("/dashboard_data", response_model=UserAnalysisResponse, summary="获取学习需求仪表板数据")
-async def get_dashboard_data():
+async def get_dashboard_data(user_id: str = "default_user"):
     """获取学习需求仪表板数据"""
-    return await get_user_analysis("default_user")
+    return await get_user_analysis(user_id)
 
 
 @router_underscore.get("/dashboard_data", response_model=UserAnalysisResponse, summary="获取学习需求仪表板数据")
-async def get_dashboard_data_underscore():
+async def get_dashboard_data_underscore(user_id: str = "default_user"):
     """获取学习需求仪表板数据（下划线版本）"""
-    return await get_user_analysis("default_user")
+    return await get_user_analysis(user_id)
 
 
 class ReminderRequest(BaseModel):

@@ -177,8 +177,8 @@ class AppointmentProcessor:
         else:
             yield self.message_builder.create_unrelated_message()
     
-    async def handle_complete_appointment(self, appointment_history: Dict[str, Any], 
-                                        session_id: str) -> AsyncGenerator[str, None]:
+    async def handle_complete_appointment(self, appointment_history: Dict[str, Any],
+                                        session_id: str, user_id: str = None) -> AsyncGenerator[str, None]:
         """处理预约信息完整的情况"""
         # 检查是否用户拒绝了推荐
         if appointment_history.get('recommendation_declined'):
@@ -196,7 +196,7 @@ class AppointmentProcessor:
             # 标记为推荐老师用于成功消息显示
             tech['is_recommendation'] = True
             tech['original_technician'] = appointment_history.get('original_technician')
-            reply = await self._process_successful_appointment(tech, appointment_history, session_id)
+            reply = await self._process_successful_appointment(tech, appointment_history, session_id, user_id)
             yield f"[REPLY][排课助手]{reply}"
             # 清理状态
             appointment_history.pop('confirmed_technician', None)
@@ -245,22 +245,23 @@ class AppointmentProcessor:
                 return
             else:
                 # 正常预约流程
-                reply = await self._process_successful_appointment(tech, appointment_history, session_id)
+                reply = await self._process_successful_appointment(tech, appointment_history, session_id, user_id)
                 yield f"[REPLY][排课助手]{reply}"
         else:
             reply = self.message_builder.create_appointment_failure_message(technician_name)
             yield f"[REPLY][排课助手]{reply}"
     
-    async def _process_successful_appointment(self, tech: Dict[str, Any], 
-                                           appointment_history: Dict[str, Any], session_id: str) -> str:
+    async def _process_successful_appointment(self, tech: Dict[str, Any],
+                                           appointment_history: Dict[str, Any], session_id: str,
+                                           user_id: str = None) -> str:
         """处理预约成功的情况，并结合北京天气生成课程准备提示"""
         start_time, end_time, duration_min = self.technician_finder.parse_time_and_duration(
-            appointment_history["start_time"], 
+            appointment_history["start_time"],
             appointment_history["duration"]
         )
         # 保存预约到数据库
         success = self.appointment_database.save_appointment(
-            tech["id"], start_time, end_time, appointment_history, session_id
+            tech["id"], start_time, end_time, appointment_history, session_id, user_id
         )
         if success:
             # 更新内存中的忙碌时段

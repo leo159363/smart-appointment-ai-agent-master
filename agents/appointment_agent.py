@@ -147,7 +147,7 @@ class AppointmentAgent:
             if self.finished:
                 recommendation_pending = False
                 async for token in self.appointment_processor.handle_complete_appointment(
-                    self.appointment_history, self.session_id
+                    self.appointment_history, self.session_id, self.user_id
                 ):
                     # 检查是否有推荐等待确认
                     if token == "[SIGNAL]recommendation_pending":

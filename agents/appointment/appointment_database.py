@@ -35,20 +35,20 @@ class AppointmentDatabase:
             self._user_behavior_service = UserBehaviorService()
         return self._user_behavior_service
     
-    def save_appointment(self, technician_id: str, start_time: datetime, 
-                        end_time: datetime, appointment_history: Dict[str, Any], 
-                        session_id: str) -> bool:
+    def save_appointment(self, technician_id: str, start_time: datetime,
+                        end_time: datetime, appointment_history: Dict[str, Any],
+                        session_id: str, user_id: str = None) -> bool:
         """保存预约信息到数据库"""
         try:
             # 通过Services层保存预约
             success = self.appointment_service.save_appointment(
                 technician_id, start_time, end_time, appointment_history, session_id
             )
-            
+
             if success:
                 # 记录用户行为
-                self._record_user_behavior(start_time, end_time, technician_id, 
-                                         appointment_history, session_id)
+                self._record_user_behavior(start_time, end_time, technician_id,
+                                         appointment_history, session_id, user_id)
             
             return success
             
@@ -65,8 +65,8 @@ class AppointmentDatabase:
         busy_periods_dict.setdefault(technician_id, []).append(busy_period)
     
     def _record_user_behavior(self, start_time: datetime, end_time: datetime,
-                            technician_id: str, appointment_history: Dict[str, Any], 
-                            session_id: str):
+                            technician_id: str, appointment_history: Dict[str, Any],
+                            session_id: str, user_id: str = None):
         """记录用户预约行为"""
         try:
             action_data = {
@@ -77,10 +77,10 @@ class AppointmentDatabase:
                 'preference': appointment_history.get('preference', ''),
                 'technician_id': technician_id
             }
-            
+
             # 通过Services层记录用户行为
             self.user_behavior_service.record_behavior(
-                user_id="default_user",  # 统一使用default_user作为用户ID
+                user_id=user_id or "default_user",
                 action_type='appointment',
                 action_data=action_data,
                 technician_id=str(technician_id),

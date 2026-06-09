@@ -65,7 +65,7 @@ class UserBehaviorAgent:
         try:
             # 优先使用Services层，保持向后兼容
             return self.user_behavior_service.record_behavior(
-                user_id="default_user",  # 统一使用default_user作为用户ID
+                user_id=self.user_id,  # 使用实例的 user_id
                 action_type=action_type,
                 action_data=action_data,
                 technician_id=technician_id,

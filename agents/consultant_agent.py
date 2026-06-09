@@ -118,6 +118,7 @@ class ConsultantAgent:
             user_input,
             self.session_id,
             student_profile_context=student_profile_context,
+            user_id=self.user_id,
         ):
             yield token
         

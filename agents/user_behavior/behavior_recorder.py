@@ -36,25 +36,28 @@ class BehaviorRecorder:
             # 如果没有service，返回None（应该在组件初始化时提供适当的处理）
             return None
     
-    def record_behavior(self, action_type: str, action_data: Dict[str, Any] = None, 
-                       technician_id: int = None, session_id: str = None) -> Optional[int]:
+    def record_behavior(self, action_type: str, action_data: Dict[str, Any] = None,
+                       technician_id: int = None, session_id: str = None,
+                       user_id: str = None) -> Optional[int]:
         """
         记录用户行为
-        
+
         Args:
             action_type: 行为类型 (appointment, consultation, cancel等)
             action_data: 行为相关数据
             technician_id: 技师ID
             session_id: 会话ID
-            
+            user_id: 用户ID，不传时使用默认用户ID
+
         Returns:
             int: 行为记录ID，失败时返回None
         """
         try:
+            effective_user_id = user_id or "default_user"
             # 如果有behavior_service则使用它，否则降级到数据库直接访问
             if self.behavior_service:
                 success = self.behavior_service.record_behavior(
-                    user_id="default_user",  # 默认用户ID
+                    user_id=effective_user_id,
                     action_type=action_type,
                     action_data=action_data,
                     technician_id=str(technician_id) if technician_id else None,
@@ -64,14 +67,14 @@ class BehaviorRecorder:
             else:
                 # 向后兼容：直接使用数据库
                 behavior_id = self.behavior_db.record_behavior(
-                    user_id="default_user",  # 默认用户ID
+                    user_id=effective_user_id,
                     action_type=action_type,
                     action_data=action_data,
                     technician_id=technician_id,
                     session_id=session_id
                 )
                 return behavior_id
-            
+
         except Exception as e:
             self.logger.error(f"记录用户行为失败: {str(e)}")
             return None
