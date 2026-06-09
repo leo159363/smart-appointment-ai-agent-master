@@ -34,14 +34,23 @@ class ConsultationProcessor:
         
         return response
     
-    async def process_consultation_stream(self, user_input: str, session_id: str) -> AsyncGenerator[str, None]:
+    async def process_consultation_stream(
+        self,
+        user_input: str,
+        session_id: str,
+        student_profile_context: str = "",
+    ) -> AsyncGenerator[str, None]:
         """处理流式咨询"""
         try:
             # 1. 检索知识
             knowledge_docs = await self.knowledge_retriever.search_knowledge(user_input, top_k=3)
             
             # 2. 生成响应
-            async for token in self.response_generator.generate_response_stream(user_input, knowledge_docs):
+            async for token in self.response_generator.generate_response_stream(
+                user_input,
+                knowledge_docs,
+                student_profile_context=student_profile_context,
+            ):
                 yield token
             
             # 3. 记录用户行为

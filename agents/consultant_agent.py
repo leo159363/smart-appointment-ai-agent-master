@@ -18,11 +18,20 @@ class ConsultantAgent:
     3. 协调整个咨询流程
     """
     
-    def __init__(self, session_id=None, user_id: str = "default_user", student_profile_service=None):
+    def __init__(
+        self,
+        session_id=None,
+        user_id: str = "default_user",
+        student_profile_service=None,
+        auto_update_student_profile: bool = False,
+        enable_stream_student_profile_context: bool = False,
+    ):
         # 基础设置
         self.session_id = session_id or str(uuid.uuid4())
         self.user_id = user_id or "default_user"
         self._student_profile_service = student_profile_service
+        self.auto_update_student_profile = auto_update_student_profile
+        self.enable_stream_student_profile_context = enable_stream_student_profile_context
         self.shared_state = None
         self.unrelated_callback = None
         
@@ -99,8 +108,16 @@ class ConsultantAgent:
             return
         
         # 3. 处理咨询相关的请求
+        if self.auto_update_student_profile:
+            self._update_student_profile_from_text(user_input)
+        student_profile_context = ""
+        if self.enable_stream_student_profile_context:
+            student_profile_context = self._get_student_profile_context()
+
         async for token in self.consultation_processor.process_consultation_stream(
-            user_input, self.session_id
+            user_input,
+            self.session_id,
+            student_profile_context=student_profile_context,
         ):
             yield token
         
@@ -122,3 +139,17 @@ class ConsultantAgent:
             return self.student_profile_service.format_profile_context(profile)
         except Exception:
             return ""
+
+    def _update_student_profile_from_text(self, user_input: str) -> bool:
+        """从用户输入中提取画像字段并写入行为事件"""
+        try:
+            profile_data = self.student_profile_service.extract_profile_from_text(user_input)
+            if not profile_data:
+                return False
+            return self.student_profile_service.update_profile(
+                self.user_id,
+                profile_data,
+                source="chat",
+            )
+        except Exception:
+            return False

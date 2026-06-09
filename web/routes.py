@@ -21,6 +21,7 @@ router = APIRouter(tags=["Web界面"])
 class ChatRequest(BaseModel):
     message: str
     state: str | None = None
+    user_id: str | None = "default_user"
 
 @router.get("/", response_class=HTMLResponse, summary="主页")
 async def read_root(request: Request):
@@ -39,7 +40,7 @@ async def chat_stream_endpoint(chat: ChatRequest):
 async def chat_endpoint(chat: ChatRequest):
     """兼容性聊天接口，建议使用/chat/stream"""
     async def token_generator():
-        async for token in ProcessUserInput_stream(chat.message):
+        async for token in ProcessUserInput_stream(chat.message, user_id=chat.user_id or "default_user"):
             yield token
     return StreamingResponse(token_generator(), media_type="text/plain")
 

@@ -31,10 +31,19 @@ class ResponseGenerator:
                 return self._pricing_fallback_response()
             return f"抱歉，处理您的问题时出现了错误。请稍后再试。"
     
-    async def generate_response_stream(self, user_input: str, knowledge_docs: list) -> AsyncGenerator[str, None]:
+    async def generate_response_stream(
+        self,
+        user_input: str,
+        knowledge_docs: list,
+        student_profile_context: str = "",
+    ) -> AsyncGenerator[str, None]:
         """生成流式响应"""
         try:
-            prompt = self.prompt_builder.build_consultation_prompt(user_input, knowledge_docs)
+            prompt = self.prompt_builder.build_consultation_prompt(
+                user_input,
+                knowledge_docs,
+                student_profile_context=student_profile_context,
+            )
             response = await self.llm.ainvoke([{"role": "user", "content": prompt}])
             content = self._enhance_pricing_response(user_input, response.content)
             
