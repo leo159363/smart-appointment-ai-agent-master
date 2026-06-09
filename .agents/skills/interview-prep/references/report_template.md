@@ -23,7 +23,7 @@
 ## 三、主要薄弱点
 
 - 是否缺少源码锚点。
-- 是否混淆当前轻量 RAG 与未来 Modular RAG MCP Server。
+- 是否混淆本地 FAISS fallback 层与 Modular RAG MCP Primary 主检索的关系。
 - 是否无法解释内部兼容字段保留原因。
 - 是否无法说明已知测试失败的风险分类。
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  One-shot environment bootstrapper for the Smart Appointment AI Agent (Windows).
+  One-shot environment bootstrapper for the AI 家教培训机构智能咨询与排课系统 (Windows).
 
 .DESCRIPTION
   - Validates Python >= 3.10
@@ -15,14 +15,14 @@
   Recreate the .venv from scratch.
 
 .PARAMETER Run
-  After setup, launch `uvicorn app:app` on 127.0.0.1:8001.
+  After setup, launch `uvicorn app:app` on 127.0.0.1:8000.
 
 .PARAMETER NoVerify
   Skip the verify_env.py import smoke test.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File .github\skills\setup-environment\scripts\setup.ps1
-  powershell -ExecutionPolicy Bypass -File .github\skills\setup-environment\scripts\setup.ps1 -Force -Run
+  powershell -ExecutionPolicy Bypass -File .agents\skills\setup-environment\scripts\setup.ps1
+  powershell -ExecutionPolicy Bypass -File .agents\skills\setup-environment\scripts\setup.ps1 -Force -Run
 #>
 [CmdletBinding()]
 param(
@@ -33,7 +33,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Resolve project root: scripts/ -> setup-environment/ -> skills/ -> .github/ -> ROOT
+# Resolve project root: scripts/ -> setup-environment/ -> skills/ -> .agents/ -> ROOT
 $ScriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptDir '..\..\..\..')
 Set-Location $ProjectRoot
@@ -218,6 +218,14 @@ Write-Step "Ensuring data/ directory"
 New-Item -ItemType Directory -Force -Path (Join-Path $ProjectRoot 'data') | Out-Null
 Write-Ok "data/ ready"
 
+# ---------------------------------------------------------------- 5b. demo data reset hint
+$ResetScript = Join-Path $ProjectRoot 'scripts\reset_demo_data.py'
+if (Test-Path $ResetScript) {
+    Write-Step "Tutoring demo data reset is available"
+    Write-Host " Run before demos: .\.venv\Scripts\python.exe scripts\reset_demo_data.py" -ForegroundColor Green
+    Write-Host " This backs up and rebuilds SQLite demo data without changing schema." -ForegroundColor Green
+}
+
 # ---------------------------------------------------------------- 6. verify
 if (-not $NoVerify) {
     Write-Step "Verifying installation"
@@ -228,11 +236,12 @@ if (-not $NoVerify) {
 Write-Host "`n========================================================" -ForegroundColor Green
 Write-Host " Setup complete." -ForegroundColor Green
 Write-Host " Activate the venv with:  .\.venv\Scripts\Activate.ps1"   -ForegroundColor Green
-Write-Host " Then launch the app:     uvicorn app:app --host 127.0.0.1 --port 8001 --reload" -ForegroundColor Green
+Write-Host " Optional demo reset:     .\.venv\Scripts\python.exe scripts\reset_demo_data.py" -ForegroundColor Green
+Write-Host " Then launch the app:     uvicorn app:app --host 127.0.0.1 --port 8000" -ForegroundColor Green
 Write-Host "========================================================`n" -ForegroundColor Green
 
 # ---------------------------------------------------------------- 7. optional run
 if ($Run) {
-    Write-Step "Launching uvicorn on 127.0.0.1:8001"
-    & $VenvPython -m uvicorn app:app --host 127.0.0.1 --port 8001 --reload
+    Write-Step "Launching uvicorn on 127.0.0.1:8000"
+    & $VenvPython -m uvicorn app:app --host 127.0.0.1 --port 8000
 }

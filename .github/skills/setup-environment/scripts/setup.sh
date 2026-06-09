@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# One-shot environment bootstrapper for the Smart Appointment AI Agent (macOS / Linux).
+# One-shot environment bootstrapper for the AI tutoring consultation and scheduling system (macOS / Linux).
 #
 # Flags:
 #   --force        recreate .venv from scratch
-#   --run          after setup, launch uvicorn on 127.0.0.1:8001
+#   --run          after setup, launch uvicorn on 127.0.0.1:8000
 #   --no-verify    skip verify_env.py
 set -euo pipefail
 
@@ -176,6 +176,13 @@ step "Ensuring data/ directory"
 mkdir -p "$PROJECT_ROOT/data"
 ok "data/ ready"
 
+RESET_SCRIPT="$PROJECT_ROOT/scripts/reset_demo_data.py"
+if [ -f "$RESET_SCRIPT" ]; then
+    step "Tutoring demo data reset is available"
+    printf "${C_GREEN}Run before demos: ./.venv/bin/python scripts/reset_demo_data.py${C_OFF}\n"
+    printf "${C_GREEN}This backs up and rebuilds SQLite demo data without changing schema.${C_OFF}\n"
+fi
+
 # ----------------------------------------------------------- 6. verify
 if [ "$VERIFY" -eq 1 ]; then
     step "Verifying installation"
@@ -187,13 +194,14 @@ cat <<EOF
 ${C_GREEN}========================================================
  Setup complete.
  Activate the venv with:  source .venv/bin/activate
- Then launch the app:     uvicorn app:app --host 127.0.0.1 --port 8001 --reload
+ Optional demo reset:     ./.venv/bin/python scripts/reset_demo_data.py
+ Then launch the app:     uvicorn app:app --host 127.0.0.1 --port 8000
 ========================================================${C_OFF}
 
 EOF
 
 # ----------------------------------------------------------- 7. optional run
 if [ "$RUN" -eq 1 ]; then
-    step "Launching uvicorn on 127.0.0.1:8001"
-    exec "$VENV_PY" -m uvicorn app:app --host 127.0.0.1 --port 8001 --reload
+    step "Launching uvicorn on 127.0.0.1:8000"
+    exec "$VENV_PY" -m uvicorn app:app --host 127.0.0.1 --port 8000
 fi

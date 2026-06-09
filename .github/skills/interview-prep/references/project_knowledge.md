@@ -1,93 +1,93 @@
-# 项目知识锚点 — Smart Appointment AI Agent
-
-用于模拟面试时把问题落到真实代码和架构上。
+# 项目知识锚点 - AI 家教培训机构智能咨询与排课系统
 
 ## 总体架构
 
-五层：Web/Application → API → Agents → Services → DB。
-
-关键入口：
 - `app.py`: FastAPI 应用创建、路由注册、系统启动初始化。
-- `api/chat_handler.py`: 单用户 session、TaskClassificationAgent 入口、流式 token 输出。
-- `web/routes.py`: Web 页面和聊天接口。
+- `web/templates/`: 首页、课程知识库、老师状态、老师课表、学习需求分析页面。
+- `web/routes.py`: 页面路由和 `/chat/stream` 流式聊天入口。
+- `api/`: REST API 层，包含课程咨询、任务分类、预约/排课、老师、知识库、学习需求分析。
+- `agents/`: 多 Agent 编排层。
+- `services/`: 知识库、老师、预约、学习需求等服务层。
+- `db/`: SQLite 模型、Repository、Router。
+- `scripts/reset_demo_data.py`: 备份并重置本地演示数据，不修改 schema。
+- `tests/`: pytest 自动化测试基线。
 
 ## 多 Agent 编排
 
-关键代码：
-- `agents/task_classification_agent.py`: 总控，初始化 LLM、StateManager、TaskClassifier、AgentRouter、UnrelatedHandler、ClassificationProcessor。
-- `agents/task_classification/`: 分类、状态管理、路由、无关请求处理。
-- `agents/appointment_agent.py`: 预约流程控制。
-- `agents/consultant_agent.py`: 咨询/RAG 入口。
-- `agents/user_behavior_agent.py`: 用户行为分析。
+- `agents/task_classification_agent.py`: 总入口，初始化任务分类、预约、咨询 Agent。
+- `agents/task_classification/task_classifier.py`: 将输入归类为 appointment/query/pay/statistics/other。
+- `agents/task_classification/agent_router.py`: 根据分类结果路由到预约/排课 Agent 或咨询 Agent。
+- `agents/appointment_agent.py`: 试听课预约/正式排课主控制器，维护会话状态。
+- `agents/consultant_agent.py`: 课程咨询/RAG 问答入口。
+- `agents/user_behavior_agent.py`: 学习需求分析、回访提醒、偏好分析。
 
-面试答题要点：
-- 中心化编排适合“预约 / 咨询 / 用户行为分析”这种可拆业务。
-- TaskClassificationAgent 负责意图识别和路由，专用 Agent 负责领域逻辑。
-- 无关请求可回流到分类器，避免单 Agent 锁死在错误状态。
+面试要点:
 
-## 预约流程
+- 多 Agent 拆分减少单 Agent 上下文膨胀和职责混乱。
+- 当前是中心化编排，不要夸大成复杂 P2P Agent 网络。
+- `technician`、`appointment`、`service_type`、`technician_id` 是 MVP 阶段保留的历史兼容字段，对外语义已经迁移为老师、课程、试听课和排课。
 
-关键代码：
-- `agents/appointment_agent.py`: `run_stream`, `appointment_history`, reset 时机。
-- `agents/appointment/input_parser.py`: 用户输入结构化抽取。
-- `agents/appointment/appointment_processor.py`: 完整/不完整预约处理、推荐确认。
-- `agents/appointment/technician_finder.py`: 技师匹配。
-- `agents/appointment/appointment_database.py`: 预约数据操作。
+## 预约/排课流程
 
-要能解释：
-- 哪些字段决定预约是否完整：gender、start_time、duration、project、preference、technician 等。
-- 为什么解析结构化数据后再更新历史，再判断 unrelated/finished。
-- 推荐技师确认时为什么不能直接 reset。
+- `agents/appointment/input_parser.py`: 将自然语言抽取到内部兼容字段。
+- `agents/appointment/appointment_processor.py`: 更新预约状态、判断缺失信息、处理推荐确认、生成成功/失败回复。
+- `agents/appointment/message_builder.py`: 构建用户可见消息，包含内部字段到中文业务字段的映射。
+- `agents/appointment/technician_finder.py`: 老师匹配，可按性别、偏好、相似教学方向查找可授课老师。
+- `agents/appointment/appointment_database.py`: 保存预约/课表数据。
 
-## RAG 与知识问答
+面试要点:
 
-关键代码：
-- `services/knowledge_service.py`: 知识加载、向量索引构建、检索。
-- `api/knowledge.py`: 知识接口。
-- `agents/consultant/`: 咨询分类、知识检索、Prompt 构建、回答生成。
+- 老师性别偏好不是必填项，缺失时应匹配任意合适老师。
+- 不能向用户暴露 `duration/gender` 这类内部字段。
+- `[请确认具体时间]` 这类占位值不能进入成功流程，应继续追问具体日期和时间。
 
-真实问题答题要点：
-- 强结构数据如技师信息可不分块，保持完整实体画像。
-- 长文本如规则/介绍可用递归字符分块，并设置 overlap。
-- 小规模可用 SQLite + FAISS，本地轻量；大规模可迁移 Milvus/Pinecone/Weaviate。
-- RAG 评估可以覆盖 hit rate、MRR、context precision、faithfulness、业务回答满意度。
+## RAG 与课程知识库
 
-## 技师匹配与 Embedding
+- `services/knowledge_service.py`: 默认课程知识库、embedding、FAISS index、SQLite 文档管理。
+- `agents/consultant/knowledge_retriever.py`: 检索课程知识。
+- `agents/consultant/prompt_builder.py`: 构建课程咨询 prompt。
+- `agents/consultant/response_generator.py`: 生成回答，并对收费/课时包问题提供规则型兜底。
 
-关键代码：
-- `services/text_embedding.py`: `find_best_match_indices`, `embed_input`, FAISS IndexFlatL2。
-- `services/technician_service.py`: 技师数据初始化和管理。
-- `agents/appointment/technician_finder.py`: 推荐入口。
+面试要点:
 
-注意点：
-- 如果使用 L2 距离，需要说明 embedding 是否归一化；若归一化，L2 与余弦排序近似一致。
-- 候选技师重复 embedding 会带来延迟成本，应说明缓存策略。
+- 当前 RAG 架构分两层：优先层是 Modular RAG MCP Server（默认 `primary`），fallback 层是本地 SQLite + Embedding + FAISS。
+- 默认 `RAG_MCP_MODE=primary`，通过 `mcp_stdio` 调用 Modular RAG 的 `query_knowledge_hub` 检索 `tutoring_course_kb`。
+- Modular 不可用、超时或空结果时自动回退本地 FAISS；可通过 `RAG_MCP_MODE=local` 完全关闭 Modular。
+- 知识覆盖课程体系、收费规则、老师介绍、试听/排课规则、课时包/课程包、教学质量等。
+- RAG 评估可以覆盖 Hit@K、MRR、context precision、faithfulness、业务关键点覆盖率。
 
-## 用户行为学习与推荐
+## 学习需求分析
 
-关键代码：
-- `agents/user_behavior/behavior_recorder.py`
-- `agents/user_behavior/pattern_analyzer.py`
-- `agents/user_behavior/preference_manager.py`
-- `services/recommendation_service.py`
+- `agents/user_behavior_agent.py`: 行为记录、偏好分析、回访提醒。
+- `agents/user_behavior/pattern_analyzer.py`: 分析偏好老师、常选课程/学科、时长、回访时机。
+- `web/templates/user_behavior_analysis.html`: 展示学习需求、回访消息和建议试听/排课时间。
+- `api/user_behavior_analysis.py`: 学习需求分析 API。
 
-真实问题答题要点：
-- “有没有学习/反思能力”不要只说理论；结合行为记录、偏好学习、定时推荐、反馈闭环。
-- 可扩展为 Reflection / Goal Monitoring，但要讲当前项目已有和可改进部分。
+面试要点:
 
-## 模型与配置
+- `[object Object]` 是前端对象数组未格式化问题。
+- `default_user` 是内部默认 user_id，不应直接展示给用户。
+- 学习需求分析适合包装为测试开发中的真实 UI/API 验收案例。
 
-关键代码：
-- `config/model_provider.py`: `create_chat_model`, `create_embedding_model`。
-- `.env`: MODEL_PROVIDER 与 EMBEDDING_PROVIDER 分离。
+## 测试基线与缺陷分类
 
-要点：
-- Chat LLM 与 embedding 是两种能力，DeepSeek 适合 chat 但通常要另配 Qwen/Zhipu/OpenAI embedding。
-- Qwen 可用 OpenAI-compatible base URL 同时支持 chat 与 embedding。
+基线命令:
 
-## 性能与评估
+```powershell
+.\.venv\Scripts\python.exe -c "import app; print('app import ok')"
+.\.venv\Scripts\python.exe -m pytest --collect-only
+.\.venv\Scripts\python.exe -m pytest tests/test_task_classification_agent.py -q
+```
 
-真实问题答题要点：
-- 端到端延迟至少分 first-token latency 和 full-response latency。
-- 流式路径：用户请求 → API/Web route → `ProcessUserInput_stream` → `TaskClassificationAgent.classify_task_stream` → 专用 Agent yield token。
-- Agent 好坏标准：任务成功率、信息抽取准确率、路由准确率、推荐满意度、RAG 命中/忠实性、异常兜底、轨迹正确性、首 token 延迟。
+风险分类:
+
+- A 类: LLM/OpenAI-compatible 连接失败。
+- B 类: 测试与当前实现不一致。
+- C 类: SQLite 数据写入或数据处理问题。
+- D 类: 页面/API/演示数据旧文案残留。
+- E 类: 真实功能阻塞问题。
+
+面试要点:
+
+- 当前任务分类单测仍可能因外部 LLM 连接失败而失败，这是已知 A 类问题。
+- 测试开发价值在于先建立基线、分阶段修改、每阶段验证、记录失败原因，而不是为全绿盲目改业务逻辑。

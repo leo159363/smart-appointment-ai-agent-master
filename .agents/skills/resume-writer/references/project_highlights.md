@@ -47,7 +47,7 @@
 - `agents/consultant/response_generator.py`
 
 **可写法**：
-- "构建轻量 RAG 课程知识库，使用 SQLite 存储课程规则、收费说明、老师介绍和试听/排课规则，并通过 FAISS 向量索引进行语义检索。"
+- "构建 RAG 课程知识库，默认通过 Modular RAG MCP Server (primary 模式) 检索课程知识，本地 SQLite + FAISS 向量索引作为 fallback，覆盖课程规则、收费说明、老师介绍和试听/排课规则。"
 - "针对收费和课时包咨询补充规则型兜底，提升演示阶段问答完整性。"
 
 ## 亮点 5：学习需求分析与回访提醒
@@ -92,13 +92,18 @@
 - "将剩余失败按 A/B/C/D/E 分类记录，区分外部 LLM 连接、测试实现差异、SQLite 数据问题、页面文案残留和真实阻塞问题。"
 - "后续计划引入 fake/mock LLM、API 自动化、Playwright 页面验收和 RAG 检索评估，提升回归稳定性。"
 
-## 亮点 9：未来 RAG/MCP 扩展边界
+## 亮点 9：Modular RAG/MCP 主检索 + 本地 FAISS fallback
 
-**参考锚点**：
+**源码锚点**：
+- `config/rag_mcp_config.py`（默认 `primary` 模式）
+- `agents/consultant/knowledge_retriever.py`（primary + fallback 逻辑）
+- `services/rag_mcp_client.py`（MCP stdio/HTTP/CLI 三种 transport）
+- `services/rag_eval_logger.py`（primary/shadow 对比日志）
 - `MODULAR-RAG-MCP-SERVER-main/`
 
 **可写法**：
-- "当前系统内置轻量 RAG，后续可将独立 Modular RAG MCP Server 作为知识检索与评估层，为课程规则、老师资料和测试知识库提供可追踪上下文。"
+- "已接入 Modular RAG MCP Server 作为默认 primary 主检索源，通过 `mcp_stdio` 调用 `query_knowledge_hub` 检索 `tutoring_course_kb`，本地 SQLite + FAISS 保留为 fallback。"
+- "支持 local / shadow / primary 三种模式，通过 jsonl 日志记录 `final_source`、fallback 原因和 Modular 可用性，用于检索效果对比和质量评估。"
 
 **边界**：
-- 这是未来方向，不要写成已完成集成。
+- Modular RAG 已是 primary 默认主检索源（不要写成未来方向），本地 FAISS 仍作为 fallback（不要写成已完全替换本地 RAG）。

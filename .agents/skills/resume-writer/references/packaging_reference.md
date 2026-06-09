@@ -45,12 +45,12 @@
 - 当前使用 SQLite 存储课程知识文档。
 - 使用 Embedding 和 FAISS 构建语义索引。
 - 覆盖课程体系、收费规则、老师介绍、试听/排课规则、课时包和教学质量。
-- 后续可接入独立 Modular RAG MCP Server 做检索、引用、Trace 和评估。
+- 已接入 Modular RAG MCP Server 作为默认 primary 主检索源，本地 FAISS 保留为 fallback。
 
 边界：
 
-- 当前 RAG 是轻量内置方案。
-- 不要写成已完成独立 RAG/MCP 服务集成。
+- 当前 RAG 默认 primary 模式已接入 Modular RAG MCP Server 作为主检索源，本地 FAISS 为 fallback。
+- 不要写成已替换本地 FAISS，仍保留 fallback 链路。
 
 ## 包装方向 4：FastAPI 后端项目
 
@@ -67,8 +67,8 @@
 |---|---|
 | 保守 | "完成家教场景 MVP 迁移，具备多 Agent、RAG 知识库和基础测试基线。" |
 | 中等 | "围绕测试开发目标，建立迁移基线、缺陷分类和页面/API/数据验收流程。" |
-| 偏 Agent/RAG | "基于中心化多 Agent 编排和轻量 RAG 课程知识库，构建可演示的智能咨询与排课链路。" |
-| 未来增强 | "规划接入独立 RAG/MCP 知识层和自动化评估体系，进一步提升检索可信度和回归稳定性。" |
+| 偏 Agent/RAG | "基于中心化多 Agent 编排和 RAG 课程知识库（默认 Modular RAG primary + 本地 FAISS fallback），构建可演示的智能咨询与排课链路。" |
+| 未来增强 | "持续完善 RAG/MCP 知识层的评估自动化与大规模知识覆盖，进一步提升检索可信度和回归稳定性。" |
 
 ## 一句话项目名候选
 
@@ -84,4 +84,4 @@
 - 当前 RAG 在哪里，怎么存，怎么检索？
 - 为什么任务分类单测仍有已知失败？
 - `reset_demo_data.py` 为什么重要？
-- 未来 RAG/MCP 是增强方向还是已完成内容？
+- RAG/MCP 当前是什么模式？Modular 和本地 FAISS 的 fallback 关系是什么？

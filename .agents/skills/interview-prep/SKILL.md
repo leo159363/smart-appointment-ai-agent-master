@@ -60,7 +60,7 @@ Prioritize:
 - Appointment/scheduling state: missing information, teacher matching, time conflicts, recommendation confirmation.
 - RAG course knowledge: `KnowledgeService`, SQLite documents, FAISS index, embeddings, retrieval and fallback.
 - LangChain choices, LLM/OpenAI-compatible provider risks, and weather/tool calling boundary.
-- Difference between current lightweight RAG and future Modular RAG MCP Server integration.
+- Difference between the current local FAISS RAG fallback layer and Modular RAG MCP Server primary retrieval integration.
 
 ### Direction 3: Test Development And Quality
 
@@ -78,7 +78,7 @@ Probe quality engineering:
 - A complete interview should include at least 40% questions from `real_interview_questions.md`.
 - If the user says "真题模式", use only listed RQ questions plus follow-ups derived from answers.
 - If the user says "源码模式", require file/function-level grounding for each answer.
-- If the user asks cross-project comparison, compare this project with `MODULAR-RAG-MCP-SERVER-main` as current app versus possible independent RAG/MCP knowledge and evaluation layer. Do not claim they are fully integrated unless the user has implemented that later.
+- If the user asks cross-project comparison, explain that `MODULAR-RAG-MCP-SERVER-main` is already integrated as the default primary retrieval source (via `RAG_MCP_MODE=primary`), with local FAISS retained as fallback. The two projects work together but remain separate codebases with their own repos.
 
 ## Per-Answer Behavior
 

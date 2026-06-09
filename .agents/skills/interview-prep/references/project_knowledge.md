@@ -50,10 +50,11 @@
 
 面试要点:
 
-- 当前 RAG 是轻量内置方案：SQLite documents + Embedding + FAISS。
+- 当前 RAG 架构分两层：优先层是 Modular RAG MCP Server（默认 `primary`），fallback 层是本地 SQLite + Embedding + FAISS。
+- 默认 `RAG_MCP_MODE=primary`，通过 `mcp_stdio` 调用 Modular RAG 的 `query_knowledge_hub` 检索 `tutoring_course_kb`。
+- Modular 不可用、超时或空结果时自动回退本地 FAISS；可通过 `RAG_MCP_MODE=local` 完全关闭 Modular。
 - 知识覆盖课程体系、收费规则、老师介绍、试听/排课规则、课时包/课程包、教学质量等。
 - RAG 评估可以覆盖 Hit@K、MRR、context precision、faithfulness、业务关键点覆盖率。
-- `MODULAR-RAG-MCP-SERVER-main` 可作为后续独立 RAG/MCP 知识层和评估层，不要声称当前已完整合并。
 
 ## 学习需求分析
 

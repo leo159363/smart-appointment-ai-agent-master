@@ -2,14 +2,20 @@
 
 ## 1. 当前项目本地 RAG 链路
 
-当前家教项目正式咨询回答仍使用内置轻量 RAG：
+当前家教项目正式咨询回答默认优先使用 Modular RAG MCP（primary 模式），本地保留两重链路作为 fallback：
 
 ```text
-SQLite knowledge_documents
-  -> Embedding
-  -> FAISS
-  -> KnowledgeService.search()
-  -> agents/consultant/knowledge_retriever.py
+默认 Primary 链路:
+  Modular RAG MCP Server (query_knowledge_hub)
+    -> 成功: 返回 Modular 检索结果
+    -> 失败/超时/空结果: fallback 到本地
+
+本地 fallback 链路:
+  SQLite knowledge_documents
+    -> Embedding
+    -> FAISS
+    -> KnowledgeService.search()
+    -> agents/consultant/knowledge_retriever.py
   -> 咨询回答生成
 ```
 

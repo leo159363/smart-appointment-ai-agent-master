@@ -1,169 +1,152 @@
 ---
 name: resume-writer
-description: "基于 Smart Appointment AI Agent（按摩房智能预约系统）生成定制化简历项目经历。沿用 Modular RAG MCP Server 简历生成风格，结合项目源码、Agent/RAG/用户记忆/反思包装方向，按四段式结构输出高质量中文或英文项目描述。Use when user says '写简历', '简历项目', '项目经历', 'resume', 'write resume', '包装项目', '优化简历', '按摩房项目简历', '预约系统简历', or asks to generate resume content based on this project."
+description: "基于 AI 家教培训机构智能咨询与排课系统生成定制化简历项目经历。围绕测试开发、Agent 应用、RAG 课程知识库、FastAPI 后端、自动化测试与质量保障进行中文或英文项目包装。Use when user says '写简历', '简历项目', '项目经历', 'resume', 'write resume', '包装项目', '优化简历', '家教项目简历', '教培 Agent 简历', '测试开发项目简历', or asks to generate resume content based on this tutoring project."
 ---
 
 # Resume Writer
 
-基于"写作原则 + 项目亮点 + 包装边界 + 用户画像 = 定制化简历"模型生成智能预约系统项目经历。默认中文输出，用户要求时提供英文版。
+基于"真实业务场景 + 技术亮点 + 质量保障 + 包装边界"生成当前项目的简历描述。默认中文输出，用户要求时提供英文版。
 
-## 工作流程
+## Phase 1: Load Knowledge
 
-### Phase 1: 加载知识
+Before writing, read:
 
-开始写简历前读取：
+1. `references/resume_principles.md` for structure and anti-patterns.
+2. `references/project_highlights.md` for technical highlights and source anchors.
+3. `references/packaging_reference.md` for allowed packaging strength and boundaries.
+4. `README.md`, `docs/BASELINE_REPORT.md`, and relevant source files when exact implementation detail is needed.
 
-1. [references/resume_principles.md](references/resume_principles.md) - 四段式结构、技术标签、亮点挖掘策略、常见误区
-2. [references/project_highlights.md](references/project_highlights.md) - 智能预约系统技术亮点、源码锚点、量化角度
-3. [references/packaging_reference.md](references/packaging_reference.md) - Agent 记忆、反思、父子 Agent、RAG/MCP 包装方向与边界
-4. 按需读取 `project_packaging_report.md`、`README.md` 或对应源码文件补充实现细节
+If the user asks about `MODULAR-RAG-MCP-SERVER-main`, it is already integrated as the default primary retrieval source. Do not claim it replaces local FAISS entirely — fallback remains.
 
-如果用户明确要求突出"接入自研 Modular RAG MCP Server"，再读取同工作区 Modular RAG MCP Server 项目的 `README.md`、`DEV_SPEC.md` 或 `.github/skills/resume-writer/references/project_highlights.md` 中相关内容。
+## Phase 2: Collect User Intent
 
-### Phase 2: 用户画像采集
+Ask up to 4 questions:
 
-用 `vscode_askQuestions` 一次性收集，最多 4 个问题：
+1. Target role: 测试开发 / Agent 应用 / RAG 工程 / FastAPI 后端 / 全栈 AI / 通用软件开发.
+2. Output style: 简历 bullets / 项目介绍 / STAR / 面试话术 / 英文版.
+3. Emphasis: 测试基线 / 多 Agent / RAG 知识库 / 预约排课流程 / 学习需求分析 / 页面 API 验收.
+4. Constraints: 篇幅、是否要量化指标、是否突出迁移过程、是否提及未来 RAG/MCP 扩展.
 
-**问题 1 - 目标岗位**（单选）：
-- Agent Engineer / LLM Application Engineer / RAG Engineer / Backend Engineer / MLE / 全栈 AI / 产品型 AI 工程
-- 决定：关键词策略、亮点筛选优先级、包装强度
+If the user wants a quick version, assume target role is **测试开发实习** and emphasize baseline, regression, defect classification, and manual/API validation.
 
-**问题 2 - 业务背景**（自由文本）：
-- 必须主动引导用户提供真实背景，用于生成"背景"段。
-- 问题文本示例：`简历背景段需要真实业务场景。请描述这个项目想对应的业务背景：门店规模、前台排班痛点、预约量、技师管理复杂度、用户咨询/预约流程中最麻烦的问题。若想使用默认按摩门店智能预约场景，也可以直接写"默认场景"。`
-- 默认场景：按摩/推拿门店前台需要同时处理客户咨询、技师排班、项目选择、偏好记录、预约确认和回访推荐，人工处理容易漏信息、重复询问、推荐不稳定。
+## Phase 3: Recommended Project Names
 
-**问题 3 - 技术侧重**（多选）：
-- Multi-Agent 编排 / 预约状态机与技师匹配 / 用户记忆与偏好学习 / 自我沉淀与反思 / RAG 咨询与知识库 / MCP 知识层接入 / FastAPI 流式响应 / 分层架构与数据库 / 测试与工程化
-- 如果用户选择 Agent Engineer，建议默认勾选：Multi-Agent 编排、用户记忆与偏好学习、自我沉淀与反思、MCP 知识层接入。
+Default project name:
 
-**问题 4 - 特殊要求**（自由文本）：
-- 示例："往 Agent 方向靠"、"别写太虚"、"中英双版本"、"控制 5 条 bullet"、"帮我给量化指标建议"、"包装大胆一点但面试要能圆回来"。
+- 基于多 Agent 与 RAG 的智能课程咨询系统
 
-### Phase 3: 内容生成
+Other acceptable names:
 
-#### 3.1 亮点匹配
+- AI 家教培训机构智能咨询与排课系统
+- AI 驱动的教育咨询与排课自动化平台
+- 面向教培机构的 Agent + RAG 质量保障项目
 
-从 `project_highlights.md` 按岗位和用户侧重选择 3-5 个亮点：
+For test-development resumes, prefer:
 
-| 岗位方向 | 优先亮点 |
-|---------|---------|
-| Agent Engineer | 亮点1(Multi-Agent 编排) -> 5(用户记忆) -> 6(反思闭环) -> 9(RAG/MCP 知识层) -> 8(流式体验) |
-| LLM Application Engineer | 亮点1(Multi-Agent) -> 2(预约状态与匹配) -> 4(RAG 咨询) -> 7(模型 Provider/Embedding) -> 8(流式响应) |
-| RAG Engineer | 亮点4(FAISS 知识库) -> 9(Modular RAG MCP 接入) -> 7(Embedding/Provider) -> 10(测试与评估) -> 3(分层架构) |
-| Backend Engineer | 亮点3(分层架构) -> 2(预约业务流) -> 8(Async/Streaming) -> 10(工程化测试) -> 5(数据模型) |
-| 产品型 AI 工程 | 亮点2(预约自动化) -> 5(长期偏好) -> 6(回访推荐) -> 4(知识咨询) -> 1(统一入口 Agent) |
+**基于多 Agent 与 RAG 的智能课程咨询系统**
 
-用户的技术侧重优先覆盖默认排序。若用户要求"包装"，必须同时参考 `packaging_reference.md` 的允许/禁止边界。
+## Phase 4: Content Generation
 
-#### 3.2 四段式内容生成
+Use the four-part structure:
 
-严格遵循 `resume_principles.md` 的四段式结构：背景 -> 目标 -> 过程 -> 结果。
+1. Background: tutoring/training institution consultation, teacher matching, trial lessons, formal scheduling, and learning follow-up.
+2. Goal: build a runnable MVP with Multi-Agent routing, RAG course knowledge, SQLite demo data, and quality baseline.
+3. Process: 4-6 bullets, each with action, implementation detail, and evidence.
+4. Result: measurable or verifiable outputs, clearly marked if suggested.
 
-**段 1：背景**
+## Role-Based Emphasis
 
-描述业务场景、服务对象和痛点。必须基于用户在问题 2 提供的背景；如果用户写"默认场景"，使用按摩门店智能预约默认场景。
+| Role | Priority |
+|---|---|
+| 测试开发 | baseline, pytest collect, page/API validation, old-text scan, A/B/C/D/E risk classification, reset demo data |
+| Agent 应用 | task routing, appointment/scheduling state, consultation Agent, learning-need Agent, fallback design |
+| RAG 工程 | KnowledgeService, SQLite documents, FAISS, embeddings, Modular RAG MCP primary retrieval + fallback, retrieval quality, RAG/MCP expansion roadmap |
+| FastAPI 后端 | app startup, routers, API layer, services, DB router, streaming response |
+| 全栈 AI | Web pages, `/chat/stream`, API docs, demo data, end-to-end flow |
 
-默认背景示例：
-- "针对按摩/推拿门店前台在高频预约、技师排班、客户咨询和偏好记录中高度依赖人工的问题，设计智能预约 Agent 系统，服务于门店客户咨询、预约确认、技师匹配和回访推荐流程。"
+## Bullet Requirements
 
-**段 2：目标**
+Each bullet should:
 
-说明技术目标和改进方向，体现技术判断力。模式：`为解决[业务问题]，目标构建[系统定位]，实现[核心能力]，达成[预期效果]。`
+- Start with a strong verb: 设计、实现、构建、优化、建立、验证、定位、沉淀.
+- Include a source-code or test anchor when useful.
+- Avoid claiming production deployment or fully completed internal rename.
+- Mention current MVP boundary honestly: some internal fields are retained for compatibility.
 
-示例：
-- "目标构建一个面向本地服务业的多 Agent 智能预约系统，通过任务分类、预约状态管理、RAG 咨询和用户偏好记忆，降低前台重复沟通成本并提升预约推荐准确性。"
+Example bullet themes:
 
-**段 3：过程（Bullet Points）**
+- 建立迁移测试基线：`import app`、`pytest --collect-only`、targeted pytest、manual validation.
+- 设计多 Agent 任务分发：classification -> consultation/appointment/user behavior.
+- 构建 RAG 课程知识库：SQLite + FAISS + embedding, course rules and pricing.
+- 修复演示体验 defects：old text residue, `[object Object]`, `default_user`, internal field leakage.
+- 沉淀 demo reset: `scripts/reset_demo_data.py` rebuilds tutoring demo data without schema change.
 
-以 4-6 条 bullet 展示关键技术方案和工程实现。每条遵循：
+## Quantification Guidance
 
-1. 动词开头：设计 / 实现 / 构建 / 优化 / 集成 / 抽象 / 主导
-2. 三段式：做了什么 -> 用了什么技术 -> 达成什么效果
-3. 夹带关键词：LangChain、Multi-Agent、RAG、FAISS、Embedding、MCP、FastAPI、SQLAlchemy、Streaming、Repository Pattern
-4. 量化收尾：尽量附带指标；没有真实数字时标注"建议值，请按实际调整"
+Use real numbers when available. If suggested numbers are used, mark them as "建议值，需按实际验证调整".
 
-**段 4：结果**
+Available verified facts:
 
-用独立段落总结项目成果，集中展示 3-5 个核心量化指标。结果段可以使用建议值，但必须显式提醒用户确认。
+- pytest collect-only can collect 30 tests.
+- targeted task classification test currently has 1 known failure due to LLM/OpenAI-compatible connection.
+- `import app` smoke test passes.
+- pages and APIs were manually validated during the migration stages.
+- SQLite demo data can be rebuilt through `scripts/reset_demo_data.py`.
 
-#### 3.3 量化指标
+Suggested metrics:
 
-如用户提供真实数字，优先使用。未提供时，可建议合理值并标注"建议值，请根据实际压测/测试结果调整"。
+| Metric | Suggested Range | Notes |
+|---|---:|---|
+| Intent routing scenario coverage | 20+ cases | Use only after building cases. |
+| RAG Hit@3 | 80%-90% | Requires future eval set. |
+| Page smoke validation | 6 pages | Homepage, docs, knowledge, teacher, schedule, learning analysis. |
+| API smoke validation | 5+ APIs | Knowledge, teachers, appointment, consultation, user behavior. |
+| Regression categories | 5 classes | A/B/C/D/E risk taxonomy. |
 
-| 指标类型 | 建议范围 | 说明 |
-|---------|---------|------|
-| 意图路由准确率 | 85%-95% | 预约/咨询/无关问题分类 |
-| 预约信息抽取完整率 | 80%-92% | 项目、时间、时长、技师偏好、性别偏好 |
-| RAG Top-3 命中率 | 80%-90% | 服务项目、价格、门店规则等知识咨询 |
-| 知识检索延迟 | 300ms-1000ms | FAISS 本地索引检索，需本地验证 |
-| 首 token 延迟 | 500ms-1500ms | FastAPI + AsyncGenerator 流式响应 |
-| 重复询问减少 | 20%-40% | 依赖长期偏好记忆，需业务日志验证 |
-| 测试用例数 | 30 个测试函数 | 当前 `tests/` 下 4 个核心 Agent 测试文件 |
-| 知识库规模 | 10+ 默认知识条目 | 可根据实际业务扩展 |
-| 技术模块数 | 5 层架构 + 3 类核心 Agent | Web/API/Agents/Services/DB + 预约/咨询/行为分析 |
-
-### Phase 4: 输出格式
-
-严格按以下模板输出：
+## Output Template
 
 ```markdown
 **[项目名称]** | [时间段] | [角色]
 
-**背景**：[2-3 句描述业务场景、服务对象、痛点]
+**背景**：[2-3 句描述家教/教培机构课程咨询、老师匹配、试听课预约和正式排课痛点]
 
-**目标**：[1-2 句说明技术目标、核心能力、预期效果]
+**目标**：[1-2 句说明 Multi-Agent + RAG + 测试基线 + 可运行 MVP 目标]
 
 **过程**：
-• [Bullet 1：Multi-Agent/架构/业务主线] - 动词开头 + 技术细节 + 效果
-• [Bullet 2：预约状态机/技师匹配/偏好记忆] - 动词开头 + 工具/方法 + 量化
-• [Bullet 3：RAG/知识库/MCP] - 动词开头 + 检索方案 + 可信知识上下文
-• [Bullet 4：工程化/流式/数据库] - 动词开头 + 实践 + 数据
-• [Bullet 5：可选扩展：反思闭环/评估/测试] - 动词开头 + 指标 + 影响
+• [Bullet 1：测试基线/迁移质量保障]
+• [Bullet 2：Multi-Agent 任务分发]
+• [Bullet 3：RAG 课程知识库]
+• [Bullet 4：试听课预约/正式排课流程]
+• [Bullet 5：学习需求分析/演示数据重置/页面 API 验收]
 
-**结果**：[2-3 句汇总核心量化指标；若使用建议值，标注需要确认]
+**结果**：[2-3 句汇总可验证结果；建议指标需标注]
 
-**技术栈**：[按岗位权重排列的关键词列表]
+**技术栈**：[FastAPI, LangChain, FAISS, SQLite, SQLAlchemy, pytest, Jinja2, Multi-Agent, RAG]
 ```
 
-约束：
-- 背景、目标、过程、结果缺一不可。
-- 过程段默认 4-6 条 bullet，除非用户指定。
-- 每条 bullet 不超过 90 字。
-- 结果段必须包含至少 3 个量化指标或建议指标。
-- 项目名称默认"智能预约与服务咨询 Agent 系统"，用户可改。
-- 不要把尚未生产化的规划写成已完全落地。
+## Packaging Boundaries
 
-### Phase 5: 迭代与面试准备
+Allowed:
 
-1. 展示初稿，询问用户是否调整岗位方向、包装强度、量化指标或篇幅。
-2. 根据反馈生成第二版、短版、英文版或 ATS 关键词版。
-3. 主动提供 3-5 条面试追问预测，例如：
-	- "TaskClassificationAgent 如何维护多轮状态？AgentRouter 如何避免状态混乱？"
-	- "预约 Agent 怎么从自然语言里提取时间、时长、技师偏好？失败时怎么追问？"
-	- "用户偏好记忆写在哪里？如何避免把一次偶然选择当成长期偏好？"
-	- "RAG 当前用 FAISS 怎么存、怎么更新、怎么评估命中质量？"
-	- "你说接入 Modular RAG MCP Server，当前项目已有基础是什么，增强规划是什么？"
+- Say the project is a tutoring-domain MVP migrated and validated in stages.
+- Say the RAG architecture has two layers: Modular RAG MCP as the default primary retrieval source, with local SQLite + FAISS as fallback.
+- Say both layers serve the Knowledge-Document-Retrieval-Generation pipeline and Modular is already integrated (not future work).
+- Say internal compatibility fields such as `technician` remain to reduce migration risk.
 
-## 放大策略
+Forbidden:
 
-| 维度 | 允许 | 禁止 |
-|------|------|------|
-| 业务场景 | 包装为真实按摩/本地服务业智能预约落地 | 编造公司名、真实营收或不存在客户 |
-| Agent 架构 | 强调中心化多 Agent 编排、任务拆解、统一入口 | 声称已有复杂 P2P 子 Agent 通信 |
-| 记忆功能 | 说已有会话状态和用户偏好数据基础，并按分层记忆方向设计 | 声称完整实现成熟商用级长期记忆系统 |
-| 自我沉淀 | 说基于用户行为分析做复盘和推荐闭环设计 | 空泛写"Agent 会自主学习"且无法解释数据来源 |
-| RAG/MCP | 说当前有 FAISS 知识库基础，可接入自研 Modular RAG MCP Server 作为知识层 | 把 RAG 说成 Agent 框架本身，或声称已完整生产集成 |
-| 量化指标 | 给合理建议值并要求用户确认 | 编造无法压测或无法解释的生产级规模 |
+- Do not claim full production deployment.
+- Do not claim the internal naming refactor is complete.
+- Do not claim all tests are green.
+- Do not claim the Modular RAG MCP Server is a future plan — it is already integrated as the default primary retrieval source with local FAISS fallback.
+- Do not invent real users, revenue, traffic, or business contracts.
 
-## 反模式检查
+## Interview Follow-Up Predictions
 
-输出前检查简历不包含：
+After writing, provide 3-5 likely questions:
 
-- 泛化描述："负责 AI 系统开发"、"参与 Agent 项目"。
-- 工具堆砌：只列 LangChain、FAISS、FastAPI，不解释作用。
-- 缺失业务场景：看不出为什么按摩预约需要 Agent。
-- 过度包装：成熟框架、反思、记忆、MCP 全部说成已经完整上线。
-- 缺失量化结果或建议指标。
-- 被动语态过多："参与"、"协助"、"了解"。
-- 面试中无法用源码锚点解释的声称。
+- 为什么老师相关内部字段还叫 `technician`？
+- 当前 RAG 是怎么存储、检索和评估的？
+- 任务分类测试失败为什么不立即修？
+- 你怎么定位页面旧文案和 `[object Object]` 问题？
+- 如果继续做测试开发项目，你会补哪些自动化测试？

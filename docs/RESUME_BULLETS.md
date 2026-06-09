@@ -24,11 +24,11 @@
 
 版本 3：
 
-围绕教培机构课程咨询场景，设计多 Agent 协作链路和轻量 RAG 知识库，并通过测试基线、缺陷分类和 CI 检查保障迁移质量。
+围绕教培机构课程咨询场景，设计多 Agent 协作链路和 RAG 知识库（Modular RAG MCP 主检索 + 本地 FAISS fallback），并通过测试基线、缺陷分类和 CI 检查保障迁移质量。
 
 ## 3. 三行简历版本
 
-- 基于 FastAPI、Jinja2、多 Agent 编排和 SQLite + Embedding + FAISS 轻量 RAG，构建家教培训机构智能课程咨询与排课 MVP。
+- 基于 FastAPI、Jinja2、多 Agent 编排和 RAG 课程知识库（Modular RAG MCP primary + 本地 FAISS fallback），构建家教培训机构智能课程咨询与排课 MVP。
 - 实现课程咨询、老师匹配、试听课预约、正式排课和学习需求分析等链路，并完成从通用预约系统到教培场景的领域迁移。
 - 建立 `import app`、`pytest --collect-only`、页面/API/SQLite 验收和 GitHub Actions CI 基础检查，并补充 RAG Eval-only 导出脚本与 golden test set。
 
@@ -50,7 +50,7 @@
 - 构建课程咨询 Agent，围绕课程体系、试听规则、课时包、收费规则和老师推荐生成回答。
 - 实现预约/排课 Agent，抽取年级、学科、薄弱点、时间、老师偏好和联系方式，并追问缺失信息。
 - 构建学习需求分析 Agent，输出偏好老师、学习需求、跟进提醒和回访消息。
-- 使用 SQLite + Embedding + FAISS 实现本地轻量 RAG，`KnowledgeService.search()` 作为当前正式课程知识检索入口。
+- 使用 SQLite + Embedding + FAISS 构建本地 RAG fallback 层；默认 primary 模式通过 Modular RAG MCP Server 主检索课程知识，失败时自动回退本地 `KnowledgeService.search()`。
 - 新增 RAG Eval-only 导出脚本，将活跃课程知识导出为后续评估层可适配 JSON。
 - 设计 tutoring golden test set，并接入 MODULAR-RAG-MCP-SERVER 的 Shadow 对比和 Primary 主检索模式；当前默认 primary，失败时回退本地 RAG。
 - 接入 MODULAR-RAG-MCP-SERVER 作为可配置 RAG/MCP 检索层，支持 local、shadow、primary 三种模式；Primary 模式下优先调用 Modular 的 `query_knowledge_hub` 检索 `tutoring_course_kb`，失败时自动 fallback 到本地 FAISS，保证咨询链路可用性。

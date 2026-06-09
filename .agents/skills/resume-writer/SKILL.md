@@ -16,7 +16,7 @@ Before writing, read:
 3. `references/packaging_reference.md` for allowed packaging strength and boundaries.
 4. `README.md`, `docs/BASELINE_REPORT.md`, and relevant source files when exact implementation detail is needed.
 
-If the user explicitly asks about future integration with `MODULAR-RAG-MCP-SERVER-main`, read that project only as a future optimization reference. Do not claim it is already merged into this project.
+If the user asks about `MODULAR-RAG-MCP-SERVER-main`, it is already integrated as the default primary retrieval source. Do not claim it replaces local FAISS entirely — fallback remains.
 
 ## Phase 2: Collect User Intent
 
@@ -60,7 +60,7 @@ Use the four-part structure:
 |---|---|
 | 测试开发 | baseline, pytest collect, page/API validation, old-text scan, A/B/C/D/E risk classification, reset demo data |
 | Agent 应用 | task routing, appointment/scheduling state, consultation Agent, learning-need Agent, fallback design |
-| RAG 工程 | KnowledgeService, SQLite documents, FAISS, embeddings, retrieval quality, future RAG/MCP boundary |
+| RAG 工程 | KnowledgeService, SQLite documents, FAISS, embeddings, Modular RAG MCP primary retrieval + fallback, retrieval quality, RAG/MCP expansion roadmap |
 | FastAPI 后端 | app startup, routers, API layer, services, DB router, streaming response |
 | 全栈 AI | Web pages, `/chat/stream`, API docs, demo data, end-to-end flow |
 
@@ -129,8 +129,8 @@ Suggested metrics:
 Allowed:
 
 - Say the project is a tutoring-domain MVP migrated and validated in stages.
-- Say current RAG is lightweight and built into the app.
-- Say `MODULAR-RAG-MCP-SERVER-main` is a future independent RAG/MCP enhancement direction.
+- Say the RAG architecture has two layers: Modular RAG MCP as the default primary retrieval source, with local SQLite + FAISS as fallback.
+- Say both layers serve the Knowledge-Document-Retrieval-Generation pipeline and Modular is already integrated (not future work).
 - Say internal compatibility fields such as `technician` remain to reduce migration risk.
 
 Forbidden:
@@ -138,7 +138,7 @@ Forbidden:
 - Do not claim full production deployment.
 - Do not claim the internal naming refactor is complete.
 - Do not claim all tests are green.
-- Do not claim the Modular RAG MCP Server has already been integrated unless the user later implements it.
+- Do not claim the Modular RAG MCP Server is a future plan — it is already integrated as the default primary retrieval source with local FAISS fallback.
 - Do not invent real users, revenue, traffic, or business contracts.
 
 ## Interview Follow-Up Predictions

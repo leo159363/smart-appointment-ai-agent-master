@@ -4,13 +4,13 @@
 
 本项目是一个 AI 家教培训机构智能咨询与排课系统，面向教培机构的家长咨询、课程推荐、试听课预约、正式排课和学习需求分析场景。
 
-系统基于 FastAPI 构建后端服务，通过多 Agent 协作完成任务识别、课程咨询、老师匹配、预约排课和用户行为分析，并使用 SQLite、Embedding 和 FAISS 组成轻量级本地 RAG 课程知识库。
+系统基于 FastAPI 构建后端服务，通过多 Agent 协作完成任务识别、课程咨询、老师匹配、预约排课和用户行为分析。RAG 课程知识库采用双层架构：默认优先通过 Modular RAG MCP Server（primary 模式）检索课程知识，本地 SQLite + Embedding + FAISS 向量索引作为 fallback。
 
 ## 2. 核心能力
 
 - 智能咨询：识别家长关于试听课、课程包、老师推荐、线上线下课、改课退费等常见问题。
 - 多 Agent 协作：通过任务分类 Agent 将请求分发到咨询、预约排课和学习需求分析等能力模块。
-- RAG 课程知识库：使用 SQLite 保存课程知识，Embedding + FAISS 支持本地知识检索。
+- RAG 课程知识库：默认通过 Modular RAG MCP Server 主检索课程知识，本地 SQLite + Embedding + FAISS 作为 fallback，支持 local/shadow/primary 三种模式。
 - 老师匹配：围绕学科、年级、基础情况、学习目标和时间偏好推荐合适老师。
 - 试听课预约：支持从自然语言中提取学生、年级、科目、时间、联系方式等预约信息。
 - 正式排课：在试听和沟通后支持正式课程安排的业务流程表达。
@@ -39,7 +39,7 @@
 
 当前边界包括：
 
-- 业务主流程仍使用本地 `KnowledgeService.search()` 和轻量 FAISS RAG。
+- 业务主流程默认使用 Modular RAG MCP（primary 模式）作为主检索源，本地 `KnowledgeService.search()` 和 FAISS 作为 fallback。
 - MODULAR-RAG-MCP-SERVER 已支持 Shadow 对比和 Primary 主检索模式；当前默认是 primary，但 Primary 不是硬替换，本地 FAISS 保留为 fallback。需要完全使用本地 RAG 时，可显式设置 `RAG_MCP_MODE=local`。
 - CI 只执行基础质量检查，不执行真实 LLM 调用。
 - LLM/OpenAI-compatible 相关测试仍存在外部服务依赖，后续应通过 mock/fake LLM provider 纳入稳定阻塞 CI。
@@ -51,7 +51,7 @@
 
 - 测试开发：有明确的测试基线、已知问题分类、CI 收集检查和后续自动化测试扩展方向。
 - Agent 应用：包含任务分类、咨询、预约排课和用户行为分析等多 Agent 协作场景。
-- RAG 应用：实现本地课程知识加载、Embedding、FAISS 索引和咨询检索链路，并支持 Modular RAG 的 Eval-only、Shadow、Primary 和本地 fallback。
+- RAG 应用：实现 Modular RAG MCP（主检索层）+ 本地 SQLite/Embedding/FAISS（fallback 层）的双层架构，支持 Eval-only、Shadow、Primary 模式切换和检索结果评估日志。
 - 工程化交付：包含 FastAPI 服务、Jinja2 页面、SQLite 演示数据、脚本化数据重置、GitHub Actions CI 和分阶段文档。
 
 ## 6. 学生画像记忆系统

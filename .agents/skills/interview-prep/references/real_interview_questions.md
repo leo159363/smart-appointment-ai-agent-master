@@ -22,7 +22,7 @@
 | RQ07 | 老师匹配现在怎么做？Embedding 在哪里参与？ | 老师匹配 | 代码追问 | `TechnicianFinder`, `services/text_embedding.py`, teacher strength similarity。 |
 | RQ08 | 当前 RAG 课程知识库如何存储和检索？ | RAG 存储 | 技术深挖 | SQLite 文档 + embedding + FAISS index。 |
 | RQ09 | RAG 检索质量你会怎么评估？ | RAG 评估 | 测试开发 | Hit@K, MRR, context precision, answer faithfulness, business checklist。 |
-| RQ10 | 当前 RAG 为什么说比较轻量？和 MODULAR-RAG-MCP-SERVER 有什么区别？ | 跨项目对比 | 架构边界 | 当前内置轻量 RAG；另一个项目可作为独立 RAG/MCP 评估层。 |
+| RQ10 | 当前 RAG 架构是怎样的？Modular RAG 和本地 FAISS 如何配合？ | 跨项目对比 | 架构边界 | 默认 `primary` 模式优先走 Modular RAG MCP；本地 FAISS 保留为 fallback；可切 `local` 完全走本地。 |
 | RQ11 | `reset_demo_data.py` 解决了什么问题？为什么不强制提交 SQLite DB？ | 演示数据 | 工程化 | 可重建演示数据，避免本地 DB/备份污染仓库。 |
 | RQ12 | 你如何发现并修复旧场景文案残留？ | 缺陷定位 | 测试开发 | 关键词扫描、页面/API/DB 数据源定位、D 类问题。 |
 | RQ13 | `[object Object]`、`default_user`、`duration/gender` 分别是什么类型的问题？ | 前端/体验 | 缺陷分类 | 渲染对象、内部 ID 泄露、内部字段泄露。 |

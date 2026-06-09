@@ -40,11 +40,12 @@
 
 | 知识点 | 内容 | 源码/文档 | 面试题 |
 |---|---|---|---|
-| D5.1 | 默认课程知识库 seed | `services/knowledge_service.py`, `scripts/reset_demo_data.py` | RQ08 |
-| D5.2 | SQLite 文档存储 | `db/`, `services/knowledge_service.py` | RQ08 |
-| D5.3 | FAISS 向量索引和 Embedding | `services/knowledge_service.py`, `services/text_embedding.py` | RQ08 |
+| D5.1 | 默认课程知识库 seed 与本地 FAISS | `services/knowledge_service.py`, `scripts/reset_demo_data.py` | RQ08 |
+| D5.2 | SQLite 文档存储与 embedding | `db/`, `services/knowledge_service.py` | RQ08 |
+| D5.3 | FAISS 向量索引构建与检索 | `services/knowledge_service.py`, `services/text_embedding.py` | RQ08 |
 | D5.4 | 课程收费/课时包兜底回答 | `agents/consultant/response_generator.py`, `prompt_builder.py` | RQ08 |
 | D5.5 | RAG 检索质量评估 | `tests/`, future eval docs | RQ09 |
+| D5.6 | Modular RAG MCP Primary 主检索 + local FAISS fallback | `config/rag_mcp_config.py`, `agents/consultant/knowledge_retriever.py`, `services/rag_mcp_client.py`, `docs/RAG_PRIMARY_SWITCH_GUIDE.md` | RQ10 |
 
 ## D6 老师数据服务与 Embedding 匹配
 

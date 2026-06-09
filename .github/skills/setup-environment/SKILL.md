@@ -1,14 +1,14 @@
 ---
 name: setup-environment
-description: One-shot environment bootstrapper for the Smart Appointment AI Agent. Creates a Python virtual environment, installs dependencies from requirements.txt, scaffolds a .env file with generic OpenAI-compatible LLM / embedding / OpenWeather keys, prepares the data directory, and verifies the install. Use when user says "setup environment", "一键配置", "初始化环境", "install deps", "配置环境", "setup", "bootstrap", "搭建环境", or whenever a fresh checkout needs to be made runnable.
+description: One-shot environment bootstrapper for the AI 家教培训机构智能咨询与排课系统. Creates a Python virtual environment, installs dependencies from requirements.txt, scaffolds a .env file with generic OpenAI-compatible LLM / embedding / OpenWeather keys, prepares the data directory, optionally resets tutoring demo data, and verifies the install. Use when user says "setup environment", "一键配置", "初始化环境", "install deps", "配置环境", "setup", "bootstrap", "搭建环境", or whenever a fresh checkout needs to be made runnable.
 ---
 
 # Setup Environment
 
-One trigger completes **check Python → create venv → install deps → scaffold .env → init data dir → verify → (optional) launch app**.
+One trigger completes **check Python → create venv → install deps → scaffold .env → init data dir → optionally reset demo data → verify → (optional) launch app**.
 
 Optional modifiers:
-- `--run` after setup, also start `uvicorn` on `127.0.0.1:8001`
+- `--run` after setup, also start `uvicorn` on `127.0.0.1:8000`
 - `--force` recreate the `.venv` from scratch
 - `--no-verify` skip the import-time verification step
 
@@ -29,9 +29,9 @@ Ensure .env (copy from .env.example if missing, then prompt for model keys)
         ↓
 Ensure data/ directory exists
         ↓
-Verify imports (fastapi, langchain, faiss, sqlalchemy, mcp …)
+Verify imports (fastapi, langchain, faiss, sqlalchemy …)
         ↓
-[optional] uvicorn app:app --host 127.0.0.1 --port 8001
+[optional] uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
 > **⚠️ Always use the project-local Python environment for this repository.**
@@ -49,13 +49,13 @@ Verify imports (fastapi, langchain, faiss, sqlalchemy, mcp …)
 ### Windows (PowerShell)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .github\skills\setup-environment\scripts\setup.ps1
+powershell -ExecutionPolicy Bypass -File .agents\skills\setup-environment\scripts\setup.ps1
 ```
 
 ### macOS / Linux
 
 ```bash
-bash .github/skills/setup-environment/scripts/setup.sh
+bash .agents/skills/setup-environment/scripts/setup.sh
 ```
 
 The script is idempotent: re-running only patches whatever is missing.
@@ -100,7 +100,7 @@ Before installing dependencies or launching the app, ensure `.env` has real mode
 This project uses **two different model capabilities**:
 
 1. **Chat LLM**: used by the appointment, consultation, task-classification, and user-behavior agents to understand user messages and generate replies.
-2. **Embedding model**: used by RAG retrieval and technician similarity matching to convert text into vectors.
+2. **Embedding model**: used by RAG retrieval and teacher matching to convert course and teacher text into vectors.
 
 Do not assume every provider offers both. Chat and embedding settings are intentionally separated in `.env`:
 
@@ -182,6 +182,7 @@ If a `.env` already exists, leave it alone. Otherwise copy `.env.example` to `.e
 | `EMBEDDING_BASE_URL` | ✅ for non-Azure | OpenAI-compatible embedding base URL provided by the selected provider |
 | `EMBEDDING_MODEL` | ✅ for non-Azure | Embedding model name provided by the selected provider |
 | `AZURE_OPENAI_*` | ✅ only for Azure | Used when provider is `azure` |
+| `RAG_MCP_MODE` | ⚠ default `primary` | `primary` (default, Modular RAG first + local FAISS fallback) / `shadow` / `local` |
 | `OPENWEATHER_API_KEY` | ⚠ optional | Used by the MCP weather tool |
 
 If any required key still equals the placeholder (`your_..._here`), pause and ask the user to fill it in before continuing. **Never commit a populated `.env`.**
@@ -194,21 +195,31 @@ New-Item -ItemType Directory -Force -Path data | Out-Null
 
 The app writes the SQLite DB and FAISS index cache here on first launch.
 
-### 8. Verify
+### 8. Reset tutoring demo data
+
+Before a demo, rebuild the local SQLite sample data:
 
 ```powershell
-.\.venv\Scripts\python.exe .github\skills\setup-environment\scripts\verify_env.py
+.\.venv\Scripts\python.exe scripts\reset_demo_data.py
+```
+
+The script backs up the current SQLite database, clears old demo data, and writes tutoring-domain course knowledge and teacher examples. It does not modify the database schema.
+
+### 9. Verify
+
+```powershell
+.\.venv\Scripts\python.exe .agents\skills\setup-environment\scripts\verify_env.py
 ```
 
 This script imports the critical packages and validates the model provider variables.
 
-### 9. (Optional) Launch
+### 10. (Optional) Launch
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8001 --reload
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-Open <http://127.0.0.1:8001/docs> to confirm.
+Open <http://127.0.0.1:8000/docs> to confirm.
 
 ---
 
@@ -221,7 +232,7 @@ Open <http://127.0.0.1:8001/docs> to confirm.
 | `mcp` package not found | Confirm Python is 3.10–3.12; `mcp>=1.0.0` requires modern Python |
 | `TypeError: 'function' object is not subscriptable` during LangChain import | You are on Python 3.13/3.14. PEP 649 breaks LangChain 0.3.x. Install Python 3.12 and rebuild `.venv` (`-Force`) |
 | `ModuleNotFoundError` after install | The shell is using system Python. Re-activate `.venv` and re-run |
-| Port 8001 already in use | Stop the previous server or pass `--port 8002` to uvicorn |
+| Port 8000 already in use | Stop the previous server or pass another port to uvicorn |
 | Model auth errors at startup | Re-check `MODEL_PROVIDER`, `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, and embedding settings in `.env` |
 
 ---
@@ -229,7 +240,7 @@ Open <http://127.0.0.1:8001/docs> to confirm.
 ## Files in this skill
 
 ```
-.github/skills/setup-environment/
+.agents/skills/setup-environment/
 ├── SKILL.md           ← this file
 └── scripts/
     ├── setup.ps1      ← one-shot bootstrapper for Windows

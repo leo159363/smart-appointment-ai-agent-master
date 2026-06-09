@@ -182,6 +182,7 @@ If a `.env` already exists, leave it alone. Otherwise copy `.env.example` to `.e
 | `EMBEDDING_BASE_URL` | ✅ for non-Azure | OpenAI-compatible embedding base URL provided by the selected provider |
 | `EMBEDDING_MODEL` | ✅ for non-Azure | Embedding model name provided by the selected provider |
 | `AZURE_OPENAI_*` | ✅ only for Azure | Used when provider is `azure` |
+| `RAG_MCP_MODE` | ⚠ default `primary` | `primary` (default, Modular RAG first + local FAISS fallback) / `shadow` / `local` |
 | `OPENWEATHER_API_KEY` | ⚠ optional | Used by the MCP weather tool |
 
 If any required key still equals the placeholder (`your_..._here`), pause and ask the user to fill it in before continuing. **Never commit a populated `.env`.**

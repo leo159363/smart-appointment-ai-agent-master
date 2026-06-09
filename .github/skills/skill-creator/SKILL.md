@@ -222,7 +222,7 @@ When creating a new skill from scratch, always run the `init_skill.py` script. T
 Usage:
 
 ```bash
-python .github/skills/skill-creator/scripts/init_skill.py <skill-name> --path .github/skills
+python .agents/skills/skill-creator/scripts/init_skill.py <skill-name> --path .agents/skills
 ```
 
 The script:

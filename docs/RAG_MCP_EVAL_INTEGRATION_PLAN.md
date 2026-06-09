@@ -2,7 +2,7 @@
 
 ## 1. 当前状态
 
-当前项目内置轻量 RAG，主要由 SQLite 课程知识表、Embedding 和 FAISS 索引组成。`KnowledgeService.search()` 是当前正式检索入口，咨询 Agent 通过 `agents/consultant/knowledge_retriever.py` 获取知识片段，再交给响应生成链路。
+当前项目 RAG 架构分两层：默认 primary 模式通过 Modular RAG MCP Server 主检索课程知识；本地层由 SQLite 课程知识表、Embedding 和 FAISS 索引组成，`KnowledgeService.search()` 作为 fallback 检索入口。咨询 Agent 通过 `agents/consultant/knowledge_retriever.py` 获取知识片段，再交给响应生成链路。
 
 当前已完成 Eval-only、Shadow 和 Primary 三个阶段的接入准备与代码实现。第 7E 已完成 Primary 主检索层真实联调：当前项目可通过 `mcp_stdio` 调用 Modular 的 `query_knowledge_hub` 检索 `tutoring_course_kb`，并在 Modular 不可用、超时或返回空文档时自动 fallback 到本地 FAISS。当前默认模式已切换为 `primary`，未宣称完整首页 LLM 端到端回答链路已完成真实外部 LLM 联调。
 
