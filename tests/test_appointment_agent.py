@@ -13,6 +13,23 @@ import asyncio
 from agents.appointment_agent import AppointmentAgent
 
 
+async def collect_tokens(token_stream):
+    tokens = []
+    async for token in token_stream:
+        tokens.append(token)
+    return "".join(tokens)
+
+
+class FakeStudentProfileService:
+    def __init__(self, profiles):
+        self.profiles = profiles
+        self.requested_user_ids = []
+
+    def get_profile(self, user_id):
+        self.requested_user_ids.append(user_id)
+        return dict(self.profiles.get(user_id, {}))
+
+
 class TestAppointmentAgentCoreFeatures:
     """测试预约代理核心功能"""
     
@@ -218,3 +235,109 @@ class TestAppointmentAgentEdgeCases:
         assert agent.appointment_history["project"] is None
         assert agent.appointment_history["start_time"] is None
         assert agent.finished == False
+
+
+class TestAppointmentAgentStudentProfile:
+    """测试预约链路读取学生画像作为补充提示"""
+
+    @pytest.mark.asyncio
+    async def test_should_suggest_profile_course_when_course_is_missing(self):
+        profile_service = FakeStudentProfileService(
+            {
+                "parent_profile": {
+                    "grade": "初二",
+                    "subject": "数学",
+                    "weak_points": "基础弱",
+                    "available_time": "周末",
+                    "teacher_style_preference": "耐心",
+                }
+            }
+        )
+        agent = AppointmentAgent(
+            user_id="parent_profile",
+            student_profile_service=profile_service,
+        )
+        agent.appointment_history["duration"] = "60分钟"
+
+        response = await collect_tokens(
+            agent.appointment_processor.handle_incomplete_info(
+                {},
+                agent.appointment_history,
+                student_profile=agent._get_student_profile(),
+            )
+        )
+
+        assert profile_service.requested_user_ids == ["parent_profile"]
+        assert "你之前提到孩子初二数学基础弱" in response
+        assert "是否预约数学试听课" in response
+        assert "是否优先安排周末" in response
+        assert "是否按耐心型老师匹配" in response
+        assert agent.appointment_history["project"] is None
+        assert agent.appointment_history["start_time"] is None
+        assert agent.appointment_history["preference"] is None
+
+    @pytest.mark.asyncio
+    async def test_should_not_override_explicit_course_with_profile_subject(self):
+        profile_service = FakeStudentProfileService(
+            {
+                "explicit_course": {
+                    "subject": "数学",
+                    "available_time": "周末",
+                    "teacher_style_preference": "耐心",
+                }
+            }
+        )
+        agent = AppointmentAgent(
+            user_id="explicit_course",
+            student_profile_service=profile_service,
+        )
+        agent.appointment_history["project"] = "高中物理试听课"
+        agent.appointment_history["duration"] = "60分钟"
+
+        response = await collect_tokens(
+            agent.appointment_processor.handle_incomplete_info(
+                {},
+                agent.appointment_history,
+                student_profile=agent._get_student_profile(),
+            )
+        )
+
+        assert "是否预约数学试听课" not in response
+        assert "是否优先安排周末" in response
+        assert agent.appointment_history["project"] == "高中物理试听课"
+
+    @pytest.mark.asyncio
+    async def test_should_keep_original_incomplete_flow_without_profile(self):
+        agent = AppointmentAgent(
+            user_id="empty_profile",
+            student_profile_service=FakeStudentProfileService({"empty_profile": {}}),
+        )
+        agent.appointment_history["project"] = "初中数学试听课"
+
+        response_without_profile = await collect_tokens(
+            agent.appointment_processor.handle_incomplete_info(
+                {},
+                agent.appointment_history,
+            )
+        )
+        response_with_empty_profile = await collect_tokens(
+            agent.appointment_processor.handle_incomplete_info(
+                {},
+                agent.appointment_history,
+                student_profile=agent._get_student_profile(),
+            )
+        )
+
+        assert response_with_empty_profile == response_without_profile
+        assert "你之前提到孩子" not in response_with_empty_profile
+
+    def test_should_use_default_user_when_user_id_is_missing(self):
+        profile_service = FakeStudentProfileService(
+            {"default_user": {"subject": "英语", "available_time": "晚上"}}
+        )
+        agent = AppointmentAgent(student_profile_service=profile_service)
+
+        profile = agent._get_student_profile()
+
+        assert profile == {"subject": "英语", "available_time": "晚上"}
+        assert profile_service.requested_user_ids == ["default_user"]

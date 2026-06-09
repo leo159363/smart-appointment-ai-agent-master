@@ -289,7 +289,12 @@ class AppointmentProcessor:
         else:
             return self.message_builder.create_save_failure_message()
     
-    async def handle_incomplete_info(self, data: Dict[str, Any], appointment_history: Dict[str, Any]) -> AsyncGenerator[str, None]:
+    async def handle_incomplete_info(
+        self,
+        data: Dict[str, Any],
+        appointment_history: Dict[str, Any],
+        student_profile: Dict[str, Any] = None,
+    ) -> AsyncGenerator[str, None]:
         """处理信息不完整的情况"""
         # 确定缺失的信息
         missing = []
@@ -304,6 +309,13 @@ class AppointmentProcessor:
             missing.append("duration")
         
         reply = self.message_builder.create_missing_info_questions(missing)
+        profile_suggestions = self.message_builder.create_student_profile_suggestions(
+            missing,
+            appointment_history,
+            student_profile or {},
+        )
+        if profile_suggestions:
+            reply = reply.rstrip() + profile_suggestions
         missing_labels = self.message_builder.format_missing_fields(missing)
         yield f"[THOUGHT][排课助手]用户的课程预约信息不完整，还需要补充：{missing_labels}，我需要询问用户补充这些信息"
         yield f"[REPLY][排课助手]{reply}"

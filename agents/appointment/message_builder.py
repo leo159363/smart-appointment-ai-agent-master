@@ -133,6 +133,63 @@ class MessageBuilder:
         ]
         return "\n" + " ".join(questions) + "\n"
 
+    def create_student_profile_suggestions(
+        self,
+        missing_info: List[str],
+        appointment_history: Dict[str, Any],
+        profile: Dict[str, Any],
+    ) -> str:
+        """Create optional profile-based prompts without filling appointment fields."""
+        if not profile:
+            return ""
+
+        suggestions = []
+        subject = self._clean_profile_value(profile.get("subject"))
+        grade = self._clean_profile_value(profile.get("grade"))
+        weak_points = self._clean_profile_value(profile.get("weak_points"))
+        available_time = self._clean_profile_value(profile.get("available_time"))
+        teacher_style = self._clean_profile_value(profile.get("teacher_style_preference"))
+
+        if (
+            "project" in missing_info
+            and not self._has_usable_value(appointment_history.get("project"))
+            and subject
+        ):
+            student_summary = "".join(part for part in [grade, subject, weak_points] if part)
+            if student_summary:
+                suggestions.append(f"你之前提到孩子{student_summary}，是否预约{subject}试听课？")
+            else:
+                suggestions.append(f"你之前提到孩子需要{subject}，是否预约{subject}试听课？")
+
+        if (
+            "start_time" in missing_info
+            and not self._has_usable_value(appointment_history.get("start_time"))
+            and available_time
+        ):
+            suggestions.append(f"你之前偏好{available_time}上课，是否优先安排{available_time}？")
+
+        if not self._has_usable_value(appointment_history.get("preference")) and teacher_style:
+            style_label = self._teacher_style_label(teacher_style)
+            suggestions.append(f"你之前偏好{style_label}老师，是否按{style_label}老师匹配？")
+
+        if not suggestions:
+            return ""
+        return "\n" + " ".join(suggestions) + "\n"
+
+    def _clean_profile_value(self, value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    def _has_usable_value(self, value: Any) -> bool:
+        if value is None:
+            return False
+        text = str(value).strip()
+        return bool(text and text != "未知")
+
+    def _teacher_style_label(self, value: str) -> str:
+        return value if value.endswith("型") else f"{value}型"
+
     def format_missing_fields(self, missing_info: List[str]) -> str:
         """将内部字段名转换为用户可读的业务字段名"""
         return "、".join(self.field_labels.get(field, field) for field in missing_info)

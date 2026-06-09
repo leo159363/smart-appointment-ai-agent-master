@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import uuid
+from typing import Any, Dict
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from config.model_provider import create_chat_model
 from .appointment import (
@@ -23,10 +24,18 @@ class AppointmentAgent:
     3. 协调整个预约流程
     """
     
-    def __init__(self, session_id=None, unrelated_callback=None):
+    def __init__(
+        self,
+        session_id=None,
+        unrelated_callback=None,
+        user_id: str = "default_user",
+        student_profile_service=None,
+    ):
         # 基础设置
         self.session_id = session_id or str(uuid.uuid4())
         self.unrelated_callback = unrelated_callback
+        self.user_id = user_id or "default_user"
+        self._student_profile_service = student_profile_service
         self.state = None
         
         # 初始化LLM
@@ -81,6 +90,23 @@ class AppointmentAgent:
     def set_shared_state(self, shared_state):
         """设置共享状态"""
         self.state = shared_state
+
+    @property
+    def student_profile_service(self):
+        """Lazily create the student profile service to keep tests injectable."""
+        if self._student_profile_service is None:
+            from services.student_profile_service import StudentProfileService
+
+            self._student_profile_service = StudentProfileService()
+        return self._student_profile_service
+
+    def _get_student_profile(self) -> Dict[str, Any]:
+        """Read the latest profile for this user without affecting appointment state."""
+        try:
+            profile = self.student_profile_service.get_profile(self.user_id or "default_user")
+        except Exception:
+            return {}
+        return profile if isinstance(profile, dict) else {}
 
     async def run_stream(self, user_input=None):
         """
@@ -137,7 +163,11 @@ class AppointmentAgent:
                 return
             
             # 5. 处理信息不完整的情况
-            async for token in self.appointment_processor.handle_incomplete_info(data, self.appointment_history):
+            async for token in self.appointment_processor.handle_incomplete_info(
+                data,
+                self.appointment_history,
+                student_profile=self._get_student_profile(),
+            ):
                 yield token
                 
         except Exception as e:

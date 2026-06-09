@@ -24,7 +24,13 @@ async def ProcessUserInput_stream(user_input, state=None, context=None, user_id=
         context = {}
 
     consultant_agent = getattr(task_agent, "consultant_agent", None)
+    appointment_agent = getattr(task_agent, "appointment_agent", None)
+    request_profile_service = None
     original_consultant_state = None
+    original_appointment_state = None
+    if user_id is not None and (consultant_agent is not None or appointment_agent is not None):
+        request_profile_service = StudentProfileService()
+
     if user_id is not None and consultant_agent is not None:
         original_consultant_state = {
             "user_id": getattr(consultant_agent, "user_id", "default_user"),
@@ -33,14 +39,25 @@ async def ProcessUserInput_stream(user_input, state=None, context=None, user_id=
             "enable_stream_student_profile_context": getattr(consultant_agent, "enable_stream_student_profile_context", False),
         }
         consultant_agent.user_id = user_id or "default_user"
-        consultant_agent._student_profile_service = StudentProfileService()
+        consultant_agent._student_profile_service = request_profile_service
         consultant_agent.auto_update_student_profile = True
         consultant_agent.enable_stream_student_profile_context = True
+
+    if user_id is not None and appointment_agent is not None:
+        original_appointment_state = {
+            "user_id": getattr(appointment_agent, "user_id", "default_user"),
+            "student_profile_service": getattr(appointment_agent, "_student_profile_service", None),
+        }
+        appointment_agent.user_id = user_id or "default_user"
+        appointment_agent._student_profile_service = request_profile_service
 
     try:
         async for token in task_agent.classify_task_stream(user_input):
             yield token
     finally:
+        if original_appointment_state is not None:
+            appointment_agent.user_id = original_appointment_state["user_id"]
+            appointment_agent._student_profile_service = original_appointment_state["student_profile_service"]
         if original_consultant_state is not None:
             consultant_agent.user_id = original_consultant_state["user_id"]
             consultant_agent._student_profile_service = original_consultant_state["student_profile_service"]
