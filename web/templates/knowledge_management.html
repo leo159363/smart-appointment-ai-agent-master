@@ -978,32 +978,6 @@
     </div>
 </body>
 </html>
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            const alertHtml = `<div class="alert ${alertClass}">${message}</div>`;
-            
-            if (containerId) {
-                document.getElementById(containerId).innerHTML = alertHtml;
-            } else {
-                // 在页面顶部显示
-                const container = document.querySelector('.container');
-                const alertDiv = document.createElement('div');
-                alertDiv.innerHTML = alertHtml;
-                container.insertBefore(alertDiv, container.firstChild);
-                
-                // 3秒后自动消失
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 3000);
-            }
-        }
-        
-        // 点击模态框外部关闭
-        window.onclick = function(event) {
-            const modal = document.getElementById('editModal');
-            if (event.target === modal) {
-                closeEditModal();
-            }
-        }
     </script>
 </body>
 </html>
