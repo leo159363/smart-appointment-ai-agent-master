@@ -108,3 +108,13 @@ GitHub Actions 工作流位于 `.github/workflows/ci.yml`，当前执行：
 - RAG 导出脚本 `py_compile`。
 - RAG/MCP 配置、client 和 logger `py_compile`。
 - RAG 导出脚本 `--help`。
+
+## 9. 学生画像记忆链路
+
+学生画像记忆是现有用户行为体系上的最小扩展，不新增数据表。`services/student_profile_service.py` 复用 `UserBehaviorService` 写入 `user_behaviors` 表，使用 `action_type="student_profile_update"` 标识画像更新事件，并把 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference` 保存到 `action_data` JSON。
+
+写入链路有两类入口：`/api/consultation/ask` 在处理非流式课程咨询前从 `question` 中提取画像并以 `source="consultation_api"` 记录；首页 `/chat` 会把 `ChatRequest.user_id` 传入 `ProcessUserInput_stream`，咨询类消息由 `ConsultantAgent` 自动提取并以 `source="chat"` 记录。`/chat/stream` 保持原调用方式，未接入该 user_id 同步。
+
+读取链路分为咨询和预约两类。咨询链路中，`ConsultantAgent` 通过 `StudentProfileService.get_profile(user_id)` 获取最新画像，并用 `format_profile_context()` 生成短文本，交给 `PromptBuilder` 作为“补充学生画像上下文”，不会覆盖知识库和 RAG 检索结果。预约链路中，`AppointmentAgent` 读取画像后只把学科、可上课时间、老师风格偏好交给 `MessageBuilder.create_student_profile_suggestions()` 生成缺失字段提示，不写入 `appointment_history`，因此不会自动下单或替用户确认。
+
+兼容边界：没有画像时 `get_profile()` 返回空字典，原咨询和预约流程保持不变；没有传 `user_id` 时使用 `default_user`；用户当前明确输入的课程、时间或偏好优先级高于历史画像。

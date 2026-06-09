@@ -53,3 +53,13 @@
 - Agent 应用：包含任务分类、咨询、预约排课和用户行为分析等多 Agent 协作场景。
 - RAG 应用：实现本地课程知识加载、Embedding、FAISS 索引和咨询检索链路，并支持 Modular RAG 的 Eval-only、Shadow、Primary 和本地 fallback。
 - 工程化交付：包含 FastAPI 服务、Jinja2 页面、SQLite 演示数据、脚本化数据重置、GitHub Actions CI 和分阶段文档。
+
+## 6. 学生画像记忆系统
+
+系统已增加最小学生画像记忆能力，用于在多轮咨询和预约排课中保留学生的基本学习背景。画像字段包括 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference`。
+
+画像数据复用现有 `user_behaviors` 表保存，不新增数据库表，不修改数据库 schema。每次画像更新写入一条 `action_type="student_profile_update"` 的行为事件，`action_data` 保存画像字段 JSON；读取时按时间合并同一 `user_id` 的更新事件，得到最新画像。
+
+在 `/api/consultation/ask` 和首页 `/chat` 咨询链路中，系统会从用户问题中用规则提取画像字段，非空时写入画像事件，再读取最新画像并作为补充上下文传入咨询 prompt。该上下文只做个性化参考，不替代 RAG 检索结果。
+
+在预约/排课链路中，`AppointmentAgent` 会读取画像中的学科、可上课时间和老师风格偏好，用于缺失信息追问，例如建议是否预约之前提到的学科试听课、是否优先安排之前偏好的时间、是否按之前偏好的老师风格匹配。画像不会自动创建预约，不会替用户确认预约，也不会覆盖用户当前明确输入。

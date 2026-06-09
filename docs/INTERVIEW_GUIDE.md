@@ -157,3 +157,13 @@ RAG/MCP Primary 真实联调可以这样讲：
 ### 8.8 如果后续继续优化，你会先做什么？
 
 我会先引入 fake/mock LLM provider，让 Agent 单测稳定进入 CI；然后补 API 自动化和 Playwright 页面验收；再把 RAG golden set 自动评估接入 CI；最后持续验证 Modular RAG 的 Shadow/Primary 日志质量，并逐步重构内部兼容字段。
+
+### 8.9 学生画像记忆系统怎么设计？
+
+我没有新增用户画像表，而是复用现有 `user_behaviors` 表，把画像更新作为 `student_profile_update` 行为事件写入，`action_data` 保存 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference`。这样可以在不改 schema 的前提下，把画像作为时间序列事件沉淀下来，读取时按同一 `user_id` 的事件顺序合并成最新画像。
+
+在 `/api/consultation/ask` 和首页 `/chat` 中，系统会从用户输入里用规则提取画像字段，非空时写入事件，然后读取最新画像并注入咨询 prompt。Prompt 中明确把它作为“补充学生画像上下文”，不替代 RAG 检索结果。
+
+在预约/排课中，`AppointmentAgent` 只读取画像辅助追问缺失信息。例如缺少课程时提示是否预约之前提到的数学试听课，缺少时间时提示是否优先安排周末，缺少老师偏好时提示是否按耐心型老师匹配。它不会把画像直接写入预约历史，也不会自动确认预约；如果用户当前明确输入了课程或时间，当前输入优先。
+
+没有画像时服务返回空画像，咨询和预约走原流程；没有传 `user_id` 时继续兼容 `default_user`。这保证了新增记忆能力不会破坏旧请求。

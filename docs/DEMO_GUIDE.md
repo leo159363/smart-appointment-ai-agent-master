@@ -80,3 +80,15 @@ GitHub Actions 中的 `CI / Basic quality checks` 已配置同类基础检查，
 - 当前保留部分 `technician` 内部命名，是为了降低迁移风险和保持旧接口兼容。
 - CI 已覆盖基础质量检查，后续可以继续加入 mock LLM、API 自动化测试、Playwright 页面验收和 RAG golden set 自动评估。
 - MODULAR-RAG-MCP-SERVER 已支持 Shadow 对比和 Primary 主检索模式；当前默认是 primary，优先调用 Modular RAG，本地 FAISS 保留为 fallback。
+
+## 8. 学生画像记忆演示
+
+可以用同一个 `user_id` 演示学生画像在咨询和预约之间的复用。画像字段包括 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference`，底层复用 `user_behaviors` 表的 `student_profile_update` 事件保存，不新增数据库 schema。
+
+推荐演示输入：
+
+- 第一次咨询：`孩子初二 数学 基础弱，想补基础，周末有时间，希望老师耐心一点。`
+- 后续咨询：`试听课怎么预约？`
+- 后续预约：`我想约一节试听课。`
+
+预期讲解点：系统会从第一次输入中提取画像并保存；后续咨询会把画像作为补充上下文帮助回答；后续预约如果缺少课程、时间或老师风格偏好，会提示是否参考之前的数学、周末、耐心型老师偏好。画像只做辅助，不会自动替用户下单，不会自动确认预约，也不会覆盖用户本轮明确输入。

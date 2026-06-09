@@ -73,4 +73,12 @@
 
 **A：** 采用分阶段迁移方式，先建立 `import app`、pytest 收集和页面/API 验收基线，再逐步迁移默认数据、Agent 回答、页面文案和 API 说明；通过关键词扫描定位旧文案残留，按 A/B/C/D/E 分类记录风险；接入 GitHub Actions CI，并设计 RAG Eval-only 导出和 golden test set。
 
-**R：** 完成可运行的家教培训机构智能咨询与排课 MVP，GitHub Actions CI 跑绿，`pytest --collect-only` 可收集 30 个测试，页面/API/SQLite 演示数据完成迁移验收；当前保留 LLM 外部依赖和内部兼容字段等 MVP 边界，后续计划通过 mock LLM、API 自动化、Playwright 和 RAG 评估继续增强。
+**R：** 完成可运行的家教培训机构智能咨询与排课 MVP，GitHub Actions CI 跑绿，`pytest --collect-only` 可收集 52 个测试，页面/API/SQLite 演示数据完成迁移验收；当前保留 LLM 外部依赖和内部兼容字段等 MVP 边界，后续计划通过 mock LLM、API 自动化、Playwright 和 RAG 评估继续增强。
+
+## 8. 学生画像记忆系统 bullets
+
+- 基于现有 `user_behaviors` 表实现学生画像记忆，不新增数据库表或 schema；通过 `student_profile_update` 行为事件保存画像字段 JSON。
+- 支持 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference` 六类最小画像字段，并按同一 `user_id` 的事件时间合并为最新画像。
+- 在 `/api/consultation/ask` 和首页 `/chat` 链路中自动提取画像字段、更新画像事件，并把最新画像作为咨询 prompt 的补充上下文。
+- 在预约/排课链路中读取学生画像，辅助提示课程、可上课时间和老师风格偏好，但不自动下单、不替用户确认预约、不覆盖用户当前明确输入。
+- 使用 fake LLM、临时 SQLite 或 mock 服务覆盖画像提取、写入、合并、咨询注入、聊天复用和预约辅助提示，保证测试不依赖真实 LLM 或 Modular RAG。

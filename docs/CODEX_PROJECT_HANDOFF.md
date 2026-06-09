@@ -72,16 +72,10 @@
 
 ## 七、下一步计划
 
-- 如果 Fake LLM Provider 未 commit：先做受控提交、push、确认 CI
-- 如果 Fake LLM Provider 已 commit 且 CI 绿：进入第 `10B-0` 学生画像记忆系统只读审计
-- 第 `10B` 目标：设计学生画像记忆，字段包括：
-  - 年级
-  - 学科
-  - 薄弱点
-  - 学习目标
-  - 可上课时间
-  - 老师风格偏好
-- 先只读审计，不直接写代码
+- 第 `10B-0` 到 `10B-1E` 已完成：学生画像服务、咨询 API、首页 `/chat` 咨询链路和预约/排课辅助提示均已接入。
+- 第 `10B-2` 当前目标：完成学生画像记忆系统整体验收与文档同步。
+- 本轮文档同步后不要自动 commit；等待用户确认后再做受控 docs 提交。
+- 继续保持边界：不修改 `MODULAR-RAG-MCP-SERVER`，不改 RAG Primary / fallback，不扩知识库，不改数据库 schema，不改 `/chat/stream`。
 
 ## 八、给新窗口 Codex 的启动指令
 
@@ -98,6 +92,30 @@ git log --oneline -8
 根据当前状态判断下一步：
 
 - 如果工作区不干净，先分类说明哪些文件是业务代码、测试文件、文档、生成物，再决定是否提交
-- 如果 Fake LLM Provider 尚未提交或 CI 未确认，先做受控提交流程
-- 如果 Fake LLM Provider 已提交且测试通过，进入 `第 10B-0：学生画像记忆系统只读审计`
-- 在进入第 10B 之前，不要修改 `MODULAR-RAG-MCP-SERVER`，不要改 RAG Primary / fallback， 不要扩知识库，不要改数据库 schema
+- 如果工作区只有文档变更，等待用户确认后再做受控 docs 提交
+- 学生画像记忆系统已经接入咨询和预约链路，后续只在用户明确要求时继续扩展
+- 不要修改 `MODULAR-RAG-MCP-SERVER`，不要改 RAG Primary / fallback，不要扩知识库，不要改数据库 schema，不要改 `/chat/stream`
+
+## 九、10B 学生画像记忆系统当前状态
+
+第 `10B-0` 到 `10B-1E` 已完成学生画像记忆系统最小闭环：
+
+- `services/student_profile_service.py` 复用 `user_behaviors` 表保存画像更新事件，不新增表，不改数据库 schema
+- 画像事件使用 `action_type="student_profile_update"`，`action_data` 保存画像字段 JSON
+- 最小画像字段包括 `grade`、`subject`、`weak_points`、`learning_goal`、`available_time`、`teacher_style_preference`
+- `/api/consultation/ask` 支持 `user_id`，会从 `question` 中规则提取画像、写入更新事件、读取最新画像并交给 `ConsultantAgent`
+- 首页 `/chat` 支持 `user_id`，咨询类消息会读取和更新画像；`/chat/stream` 保持原调用方式
+- `ConsultantAgent` 将画像格式化为补充 prompt 上下文，且不替代 RAG 检索结果
+- `AppointmentAgent` 读取画像中的学科、可上课时间和老师风格偏好，只用于缺失信息提示
+- 画像不会自动替用户确认预约，不会自动下单，不会覆盖用户本轮明确输入
+- 没有画像时保持原咨询/预约流程；没有 `user_id` 时兼容 `default_user`
+
+当前关键验证：
+
+```powershell
+.\.venv\Scripts\python.exe -c "import app; print('app import ok')"
+.\.venv\Scripts\python.exe -m pytest --collect-only
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+当前测试基线已验证 `52 passed`。继续保持边界：不修改 `MODULAR-RAG-MCP-SERVER`，不改 RAG Primary / fallback，不扩知识库，不改数据库 schema，不改 `/chat/stream`。本轮文档同步后等待用户确认，再做受控 docs 提交。
