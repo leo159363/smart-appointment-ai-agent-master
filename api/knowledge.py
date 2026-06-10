@@ -8,6 +8,13 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/api/knowledge", tags=["课程知识库管理"])
 
 
+def _strip_embedding(doc):
+    """从文档中移除 embedding 向量以减小 API 响应体积"""
+    if isinstance(doc, dict) and "embedding" in doc:
+        doc = {k: v for k, v in doc.items() if k != "embedding"}
+    return doc
+
+
 class KnowledgeItem(BaseModel):
     """课程知识库条目"""
     id: int = None
@@ -19,6 +26,7 @@ class KnowledgeItem(BaseModel):
 class SearchRequest(BaseModel):
     """课程知识库搜索请求"""
     query: str
+    top_k: int = 5
 
 
 @router.get("/", summary="获取所有课程知识条目")
@@ -30,14 +38,16 @@ async def get_all_knowledge():
         if not knowledge_service.initialized:
             await knowledge_service.initialize()
         entries = knowledge_service.get_all_documents()
-        
+        # 剥离 embedding 减少响应体积
+        entries = [_strip_embedding(doc) for doc in (entries or [])]
+
         # 安全获取categories，避免出错
         try:
             categories = knowledge_service.get_all_categories()
         except Exception as e:
             print(f"获取课程知识分类失败: {e}")
             categories = []
-        
+
         return {
             "documents": entries or [],
             "categories": categories or [],
@@ -61,7 +71,7 @@ async def get_knowledge(knowledge_id: int):
             raise HTTPException(status_code=404, detail="课程知识条目不存在")
         return {
             "status": "success",
-            "data": entry
+            "data": _strip_embedding(entry)
         }
     except HTTPException:
         raise
@@ -73,7 +83,10 @@ async def get_knowledge(knowledge_id: int):
 async def add_knowledge(item: KnowledgeItem):
     """添加新的课程知识条目"""
     try:
-        knowledge_service = await app.get_knowledge_service()
+        from services.knowledge_service import KnowledgeService
+        knowledge_service = KnowledgeService()
+        if not knowledge_service.initialized:
+            await knowledge_service.initialize()
         # 将问答组合成文档内容
         content = f"问题: {item.question}\n答案: {item.answer}"
         result = await knowledge_service.add_document(
@@ -146,7 +159,8 @@ async def search_knowledge(request: SearchRequest):
         knowledge_service = KnowledgeService()
         if not knowledge_service.initialized:
             await knowledge_service.initialize()
-        results = await knowledge_service.search(request.query)
+        results = await knowledge_service.search(request.query, top_k=request.top_k)
+        results = [_strip_embedding(doc) for doc in results]
         return {
             "status": "success",
             "data": results,
