@@ -7,17 +7,17 @@ from ..models import Technician, TechnicianSchedule
 
 class TechnicianRepository(BaseTechnicianRepository, BaseScheduleRepository):
     """
-    技师数据访问对象
-    
+    老师数据访问对象（类名 Technician 为兼容保留）
+
     职责：
-    1. 技师信息的CRUD操作
-    2. 技师排班的管理
-    3. 技师可用性检查
+    1. 老师信息的CRUD操作
+    2. 老师排课的管理
+    3. 老师可用性检查
     """
-    
+
     def __init__(self, session_manager: SessionManager):
         """
-        初始化技师数据仓库
+        初始化老师数据仓库（参数名 technician 为兼容保留）
         
         Args:
             session_manager: 会话管理器
@@ -26,15 +26,15 @@ class TechnicianRepository(BaseTechnicianRepository, BaseScheduleRepository):
 
     def add_technician(self, name: str, gender: Optional[str] = None, strength: Optional[str] = None) -> int:
         """
-        添加新技师
-        
+        添加新老师（方法名和参数名 technician 为兼容保留）
+
         Args:
-            name: 技师姓名
+            name: 老师姓名
             gender: 性别
             strength: 专长
             
         Returns:
-            新创建的技师ID
+            新创建的老师ID（兼容字段名）
         """
         with self.session_manager.session_scope() as session:
             technician = Technician(name=name, gender=gender, strength=strength)

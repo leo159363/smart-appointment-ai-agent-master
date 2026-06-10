@@ -8,8 +8,11 @@ import os
 import json
 import asyncio
 import aiohttp
+import logging
 from typing import Dict, Any, AsyncGenerator
 from .input_parser import InputParser
+
+logger = logging.getLogger(__name__)
 from .technician_finder import TechnicianFinder
 from .message_builder import MessageBuilder
 from .appointment_database import AppointmentDatabase
@@ -283,7 +286,7 @@ class AppointmentProcessor:
                         f"{agent_output}\n"
                     )
                 except Exception as e:
-                    print(f"Agent调用失败: {e}")
+                    logger.error("Agent调用失败: %s", e)
                     return self.message_builder.create_appointment_success_message(tech)
             else:
                 return self.message_builder.create_appointment_success_message(tech)

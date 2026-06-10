@@ -39,7 +39,7 @@ class RecommendationService:
         try:
             logger.info("开始执行定时推荐生成任务...")
             # 通过用户行为服务分析用户模式并生成推荐
-            # TODO: 实现基于用户行为的推荐逻辑
+            # 当前 MVP 阶段暂未接入真实推荐引擎，返回空列表保持调度框架就绪
             recommendations = []
             
             if recommendations:

@@ -3,7 +3,7 @@
 
 职责：
 1. 从预约数据中提取和更新用户偏好
-2. 管理技师偏好、时间偏好、服务偏好等
+2. 管理老师偏好、时间偏好、学科偏好等
 3. 提供偏好数据的查询和统计
 4. 处理偏好的变化和趋势分析
 """
@@ -42,26 +42,26 @@ class PreferenceManager:
         
         Args:
             action_data: 预约行为数据
-            technician_id: 技师ID
+            technician_id: 老师ID
         """
         try:
-            # 技师偏好
+            # 老师偏好
             if technician_id:
                 self.update_technician_preference(technician_id)
-            
+
             # 时间偏好
             if action_data.get('start_time'):
                 self.update_time_preference(action_data['start_time'])
-            
-            # 服务时长偏好
+
+            # 课程时长偏好
             if action_data.get('duration'):
                 self.update_duration_preference(action_data['duration'])
-            
-            # 服务项目偏好
+
+            # 学科/课程偏好
             if action_data.get('project'):
                 self.update_service_preference(action_data['project'])
-            
-            # 技师偏好类型（力气大小等）
+
+            # 老师风格偏好
             if action_data.get('preference'):
                 self.update_technician_type_preference(action_data['preference'])
                 
@@ -70,10 +70,10 @@ class PreferenceManager:
     
     def update_technician_preference(self, technician_id: int):
         """
-        更新技师偏好
-        
+        更新老师偏好（内部字段名 technician 为兼容保留）
+
         Args:
-            technician_id: 技师ID
+            technician_id: 老师ID（兼容字段名）
         """
         try:
             self.behavior_db.update_user_preference('technician', str(technician_id))
@@ -133,16 +133,16 @@ class PreferenceManager:
     
     def update_technician_type_preference(self, technician_type: str):
         """
-        更新技师类型偏好
-        
+        更新老师风格偏好（内部字段名 technician_type 为兼容保留）
+
         Args:
-            technician_type: 技师类型偏好（如：力气大、手法轻等）
+            technician_type: 老师风格偏好（如：耐心细致、应试提分等）
         """
         try:
             self.behavior_db.update_user_preference('technician_type', technician_type)
-            self.logger.info(f"更新技师类型偏好: {technician_type}")
+            self.logger.info("更新老师风格偏好: %s", technician_type)
         except Exception as e:
-            self.logger.error(f"更新技师类型偏好失败: {str(e)}")
+            self.logger.error("更新老师风格偏好失败: %s", e)
     
     def get_user_preferences(self) -> Dict[str, Any]:
         """

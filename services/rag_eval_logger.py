@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from config.rag_mcp_config import RagMcpConfig, load_rag_mcp_config
+
+logger = logging.getLogger(__name__)
 
 
 class RagEvalLogger:
@@ -50,7 +53,8 @@ class RagEvalLogger:
                 },
             }
             self._append_jsonl(record)
-        except Exception:
+        except Exception as e:
+            logger.debug("RAG shadow eval log skipped: %s", e)
             return
 
     def log_primary(
@@ -89,7 +93,8 @@ class RagEvalLogger:
             if fallback_reason:
                 record["fallback_reason"] = fallback_reason
             self._append_jsonl(record)
-        except Exception:
+        except Exception as e:
+            logger.debug("RAG primary eval log skipped: %s", e)
             return
 
     def _append_jsonl(self, record: Dict[str, Any]) -> None:

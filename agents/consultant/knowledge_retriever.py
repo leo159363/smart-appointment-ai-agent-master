@@ -5,11 +5,14 @@
 """
 
 import asyncio
+import logging
 from typing import List, Dict, Any
 from services.knowledge_service import KnowledgeService
 from config.rag_mcp_config import load_rag_mcp_config
 from services.rag_mcp_client import RagMcpClient
 from services.rag_eval_logger import RagEvalLogger
+
+logger = logging.getLogger(__name__)
 
 
 class KnowledgeRetriever:
@@ -27,7 +30,7 @@ class KnowledgeRetriever:
         if not self.kb_initialized:
             await self.knowledge_service.initialize()
             self.kb_initialized = True
-            print("[OK] 咨询机器人知识库服务已初始化")
+            logger.info("咨询机器人知识库服务已初始化")
     
     async def search_knowledge(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
         """搜索相关知识"""
@@ -174,12 +177,12 @@ class KnowledgeRetriever:
     def _log_search_results(self, query: str, relevant_docs: List[Dict[str, Any]]):
         """记录搜索结果日志"""
         if relevant_docs:
-            print(f"[RAG] 知识库检索结果 (查询: '{query}'):")
+            logger.info("RAG 知识库检索结果 (查询: '%s')", query)
             for i, doc in enumerate(relevant_docs, 1):
                 score = doc.get('score', 0)
                 category = doc.get('category', '未知')
                 content = doc.get('content', '')[:80]
-                print(f"  {i}. [相关度:{score:.3f}] [分类:{category}] {content}...")
-            print(f"[RAG stats] 共检索到 {len(relevant_docs)} 条相关知识")
+                logger.debug("  %d. [相关度:%.3f] [分类:%s] %s...", i, score, category, content)
+            logger.info("RAG stats: 共检索到 %d 条相关知识", len(relevant_docs))
         else:
-            print(f"[RAG warning] 未找到与 '{query}' 相关的知识")
+            logger.warning("RAG: 未找到与 '%s' 相关的知识", query)

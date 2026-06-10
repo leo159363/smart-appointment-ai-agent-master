@@ -4,8 +4,11 @@
 负责协调整个咨询流程
 """
 
+import logging
 from typing import AsyncGenerator, Dict, Any
 from .knowledge_retriever import KnowledgeRetriever
+
+logger = logging.getLogger(__name__)
 from .consultation_classifier import ConsultationClassifier
 from .response_generator import ResponseGenerator
 
@@ -95,4 +98,4 @@ class ConsultationProcessor:
             )
             
         except Exception as behavior_error:
-            print(f"记录咨询行为失败：{behavior_error}")
+            logger.error("记录咨询行为失败：%s", behavior_error)

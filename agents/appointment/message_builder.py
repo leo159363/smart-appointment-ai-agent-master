@@ -4,7 +4,10 @@
 负责构建各种响应消息
 """
 
+import logging
 from typing import Dict, Any, List
+
+logger = logging.getLogger(__name__)
 
 
 class MessageBuilder:
@@ -80,7 +83,7 @@ class MessageBuilder:
                         return f"\n排课助手：{generated_msg}\n"
                 
             except Exception as e:
-                print(f"LLM生成推荐消息失败: {e}")
+                logger.warning("LLM生成推荐消息失败: %s", e)
         
         # 如果LLM失败，使用默认消息
         return (f"\n排课助手：抱歉，{original_tech['name']}老师在{start_time}这个时间段不空闲。"
@@ -106,7 +109,7 @@ class MessageBuilder:
                     if generated_msg:
                         return f"\n排课助手：{generated_msg}\n"
             except Exception as e:
-                print(f"LLM生成拒绝消息失败: {e}")
+                logger.warning("LLM生成拒绝消息失败: %s", e)
         
         # 默认消息
         return "\n排课助手：好的，我理解您的选择。您可以选择其他时间段，或者我可以根据学生年级、科目和老师风格偏好重新推荐老师。请问您还有其他需要吗？\n"
