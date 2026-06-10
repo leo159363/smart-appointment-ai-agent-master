@@ -120,10 +120,10 @@ class PreferenceManager:
     
     def update_service_preference(self, service: str):
         """
-        更新服务项目偏好
-        
+        更新学科/课程偏好（方法名 service 为兼容保留）
+
         Args:
-            service: 服务项目
+            service: 学科/课程名称
         """
         try:
             self.behavior_db.update_user_preference('service', service)
@@ -191,7 +191,7 @@ class PreferenceManager:
         获取偏好的服务项目
         
         Returns:
-            str: 服务项目偏好
+            str: 学科/课程偏好
         """
         try:
             preferences = self.get_user_preferences()

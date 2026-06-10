@@ -39,11 +39,11 @@ class MessageBuilder:
         # 检查是否是推荐老师
         if tech.get('is_recommendation'):
             original_tech = tech.get('original_technician', {})
-            return (f"\n排课助手：已为您预约老师：{tech['name']}，性别：{tech['gender']}。试听课/课程预约成功！"
+            return (f"\n排课助手：已为您预约老师：{tech['name']}。试听课/课程预约成功！"
                     f"（原指定的{original_tech.get('name', '')}老师时间冲突，{tech['name']}在相近学科和教学方向上同样合适）"
                     "请提前准备学生近期作业、试卷或错题本，方便老师快速了解学习情况。\n")
         else:
-            return (f"\n排课助手：已为您预约老师：{tech['name']}，性别：{tech['gender']}。试听课/课程预约成功！"
+            return (f"\n排课助手：已为您预约老师：{tech['name']}。试听课/课程预约成功！"
                     "请提前准备学生近期作业、试卷或错题本；如为线上课，请提前检查网络、摄像头和麦克风。\n")
 
     def create_technician_recommendation_message(self, original_tech: Dict[str, Any], 
@@ -62,8 +62,7 @@ class MessageBuilder:
 
 我找到了一位适合的老师：
 - 姓名：{recommended_tech['name']}
-- 性别：{recommended_tech['gender']}  
-- 专长：{recommended_tech.get('strength', '')}
+- 教学方向/风格：{recommended_tech.get('strength', '')}
 
 原老师专长：{original_tech.get('strength', '')}
 

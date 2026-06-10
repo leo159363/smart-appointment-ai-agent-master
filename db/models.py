@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from datetime import datetime
 
 Base = declarative_base()
 
@@ -10,8 +9,8 @@ class Technician(Base):
     __tablename__ = 'technicians'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
-    gender = Column(String, nullable=True)      # 新增性别字段
-    strength = Column(String, nullable=True)    # 新增力气/倾向性字段
+    gender = Column(String, nullable=True)      # 老师性别（兼容字段名）
+    strength = Column(String, nullable=True)    # 教学方向/风格（字段名 strength 为兼容保留）
     schedules = relationship("TechnicianSchedule", back_populates="technician", cascade="all, delete-orphan")
 
 class TechnicianSchedule(Base):
@@ -50,7 +49,7 @@ class UserPreference(Base):
     __tablename__ = 'user_preferences'
     id = Column(Integer, primary_key=True)
     user_id = Column(String, nullable=False, default='default_user')
-    preference_type = Column(String, nullable=False)  # 'technician', 'time', 'service', 'duration'
+    preference_type = Column(String, nullable=False)  # 'technician', 'time', 'course', 'duration'
     preference_value = Column(String, nullable=False)
     confidence_score = Column(Integer, default=1)  # 偏好的置信度（出现次数）
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

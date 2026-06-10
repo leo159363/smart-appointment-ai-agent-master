@@ -273,7 +273,7 @@ class AppointmentProcessor:
             if self.llm and hasattr(self, 'agent_executor'):
                 prompt = (
                     "请获取当前天气信息，然后为家教培训机构用户生成一段试听课或课程预约成功提示。"
-                    f"老师姓名：{tech['name']}，性别：{tech['gender']}。"
+                    f"老师姓名：{tech['name']}。"
                     "请结合天气给出到校区上课、线上课准备、学习资料准备或出行安排建议。"
                     "不得出现原生活服务预约场景中的职业称呼、用户称呼、服务承诺、放松护理或户外护肤文案。"
                 )
@@ -281,7 +281,7 @@ class AppointmentProcessor:
                     result = await self.agent_executor.ainvoke({"input": prompt})
                     agent_output = result.get("output", "")
                     return (
-                        f"\n排课助手：已为您预约老师：{tech['name']}，性别：{tech['gender']}。"
+                        f"\n排课助手：已为您预约老师：{tech['name']}。"
                         "试听课/课程预约成功！\n"
                         f"{agent_output}\n"
                     )
