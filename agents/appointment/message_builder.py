@@ -34,16 +34,26 @@ class MessageBuilder:
             "preference": "请问学生的年级、薄弱点、学习目标、老师风格偏好，或线上/线下/上门上课偏好是什么？"
         }
     
-    def create_appointment_success_message(self, tech: Dict[str, Any]) -> str:
-        """创建预约成功消息"""
+    def create_appointment_success_message(self, tech: Dict[str, Any], appointment_history: Dict[str, Any] = None) -> str:
+        """创建预约成功消息，根据试听课/正式课给出不同提示"""
+        appointment_type = (appointment_history or {}).get("appointment_type", "trial")
+        if appointment_type == "formal":
+            type_label = "正式课程"
+            type_extra = "后续排课将由教务老师与您确认固定上课时间。"
+        else:
+            type_label = "试听课"
+            type_extra = "试听结束后，老师会给出学习建议，教务老师将根据反馈推荐正式课程方案。"
+
         # 检查是否是推荐老师
         if tech.get('is_recommendation'):
             original_tech = tech.get('original_technician', {})
-            return (f"\n排课助手：已为您预约老师：{tech['name']}。试听课/课程预约成功！"
+            return (f"\n排课助手：已为您预约{type_label}，老师：{tech['name']}。"
                     f"（原指定的{original_tech.get('name', '')}老师时间冲突，{tech['name']}在相近学科和教学方向上同样合适）"
+                    f"{type_extra}"
                     "请提前准备学生近期作业、试卷或错题本，方便老师快速了解学习情况。\n")
         else:
-            return (f"\n排课助手：已为您预约老师：{tech['name']}。试听课/课程预约成功！"
+            return (f"\n排课助手：已为您预约{type_label}，老师：{tech['name']}。"
+                    f"{type_extra}"
                     "请提前准备学生近期作业、试卷或错题本；如为线上课，请提前检查网络、摄像头和麦克风。\n")
 
     def create_technician_recommendation_message(self, original_tech: Dict[str, Any], 

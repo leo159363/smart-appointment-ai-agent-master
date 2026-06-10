@@ -44,7 +44,7 @@ class InputParser:
                 '  "preference": "学习需求和老师偏好（如数学基础薄弱/考前提分/耐心细致型老师/严格督促型老师/线上课/线下校区/上门/无）",\n'
                 '  "technician_name": "指定老师姓名（如果用户明确提到老师名字，如张明远老师、李安琪等，否则为未知）",\n'
                 '  "confirmation": "如果用户在回应老师推荐或排课方案的确认问题，提取用户的回复内容（如是/好/可以/不/不要等），否则为未知",\n'
-                '  "info_complete": "根据实际情况判断：需要start_time、project、duration都不为未知；gender是老师性别偏好，如果用户没有要求可以为不限或未知，不影响排课完整性",\n'
+                '  "appointment_type": "试听课或正式课类型，如果用户明确说试听课/体验课/试听则为trial，如果用户说正式课/长期课/排课/报名/系统上课则为formal，如果不明确默认为trial",\n'
                 '  "unrelated": "如果用户的问题和试听课预约、正式排课、老师匹配无关（如问天气、聊天等），则为true，否则为false。注意：对推荐老师或排课方案的确认回复（是/不等）不应标记为unrelated",\n'
                 '  "missing_info": "如果info_complete为false，请列出缺少的关键信息，如[start_time, project]等"\n'
                 "}}\n"
@@ -92,12 +92,13 @@ class InputParser:
         except json.JSONDecodeError:
             return {
                 "gender": "未知",
-                "start_time": "未知", 
+                "start_time": "未知",
                 "duration": "未知",
                 "project": "未知",
                 "preference": "未知",
                 "technician_name": "未知",
                 "confirmation": "未知",
+                "appointment_type": "trial",
                 "info_complete": False,
                 "unrelated": False,
                 "missing_info": ["所有信息"]

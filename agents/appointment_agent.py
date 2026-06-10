@@ -126,6 +126,7 @@ class AppointmentAgent:
             # 2. 解析AI返回的数据
             data = self.input_parser.parse_data(ai_content)
             self._normalize_course_type(user_input, data)
+            self._normalize_appointment_type(user_input, data)
             self.finished = self.appointment_processor.update_history_from_data(self.appointment_history, data)
             
             # 3. 处理与预约无关的请求
@@ -190,3 +191,16 @@ class AppointmentAgent:
             data["project"] = "正式课程"
         elif "试听课" in user_input or "试听" in user_input:
             data["project"] = "试听课"
+
+    def _normalize_appointment_type(self, user_input: str, data: dict):
+        """从用户输入中推断预约类型：试听课(trial) 或 正式课(formal)"""
+        appointment_type = data.get("appointment_type", "")
+        if appointment_type and appointment_type not in ("未知", "", None):
+            return
+
+        if any(kw in user_input for kw in ["试听课", "试听", "体验课", "体验"]):
+            data["appointment_type"] = "trial"
+        elif any(kw in user_input for kw in ["正式课", "正式课程", "长期课", "系统上课", "报名", "排课"]):
+            data["appointment_type"] = "formal"
+        else:
+            data["appointment_type"] = "trial"  # 默认试听课

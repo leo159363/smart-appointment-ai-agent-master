@@ -78,6 +78,7 @@ class AppointmentDatabase:
                 'duration': int((end_time - start_time).total_seconds() / 60),
                 'project': appointment_history.get('project', '试听课'),
                 'preference': appointment_history.get('preference', ''),
+                'appointment_type': appointment_history.get('appointment_type', 'trial'),
                 'technician_id': technician_id
             }
 
